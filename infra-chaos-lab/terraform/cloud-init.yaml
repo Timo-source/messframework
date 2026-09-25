@@ -31,13 +31,9 @@ write_files:
         service:
           type: NodePort
           nodePortHttp: 30080
+          ports:
+            http: 80
         insecure: true
-        metrics:
-          enabled: true
-          serviceMonitor:
-            enabled: true
-            additionalLabels:
-              release: prometheus
         resources:
           requests:
             cpu: 50m
@@ -48,10 +44,6 @@ write_files:
       controller:
         metrics:
           enabled: true
-          serviceMonitor:
-            enabled: true
-            additionalLabels:
-              release: prometheus
         resources:
           requests:
             cpu: 100m
@@ -62,10 +54,6 @@ write_files:
       repoServer:
         metrics:
           enabled: true
-          serviceMonitor:
-            enabled: true
-            additionalLabels:
-              release: prometheus
         resources:
           requests:
             cpu: 50m
@@ -85,41 +73,30 @@ write_files:
   - path: /opt/helm-values/values-prometheus.yaml
     permissions: '0644'
     content: |
-      defaultRules:
-        create: false
-      alertmanager:
-        enabled: false
-      prometheus:
-        prometheusSpec:
-          scrapeInterval: "5s"
-          evaluationInterval: "5s"
-          retention: "24h"
-          serviceMonitorSelectorNilUsesHelmValues: false
-          podMonitorSelectorNilUsesHelmValues: false
-          resources:
-            requests:
-              cpu: 100m
-              memory: 384Mi
-            limits:
-              cpu: 500m
-              memory: 768Mi
-      grafana:
-        enabled: true
-        adminPassword: "admin"
+      server:
+        retention: "24h"
+        global:
+          scrape_interval: 5s
+          scrape_timeout: 4s
+          evaluation_interval: 5s
         service:
           type: NodePort
-          nodePort: 30000
+          nodePort: 30090
         resources:
           requests:
             cpu: 50m
             memory: 128Mi
           limits:
-            cpu: 200m
-            memory: 256Mi
-      nodeExporter:
+            cpu: 300m
+            memory: 384Mi
+      prometheus-node-exporter:
         enabled: true
-      kubeStateMetrics:
+      kube-state-metrics:
         enabled: true
+      alertmanager:
+        enabled: false
+      prometheus-pushgateway:
+        enabled: false
 
   - path: /usr/local/bin/bootstrap-cluster.sh
     permissions: '0755'
@@ -146,46 +123,57 @@ write_files:
 
       export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
-      echo "=== [2/6] Richte Kubeconfig fuer ubuntu User ein ==="
+      echo "=== [3/7] Richte Kubeconfig fuer ubuntu User ein ==="
       mkdir -p /home/ubuntu/.kube
       cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
-      sed -i "s/127.0.0.1/${PUBLIC_IPV4:-127.0.0.1}/g" /home/ubuntu/.kube/config
       chown -R ubuntu:ubuntu /home/ubuntu/.kube
       echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> /home/ubuntu/.bashrc
 
-      echo "=== [3/6] Warte auf K3s Node Readiness ==="
+      echo "=== [4/7] Warte auf K3s Node Readiness ==="
       until kubectl get nodes | grep -q " Ready"; do
         echo "Warte auf K3s..."
         sleep 3
       done
 
-      echo "=== [4/6] Installiere Helm v3 ==="
+      echo "=== [5/7] Installiere Helm v3 ==="
       curl -fsSL -o /tmp/get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
       chmod 700 /tmp/get_helm.sh
       /tmp/get_helm.sh
       rm -f /tmp/get_helm.sh
 
-      echo "=== [5/6] Erstelle Namespaces (argocd, monitoring, workloads) ==="
+      echo "=== [6/7] Erstelle Namespaces (argocd, monitoring, workloads) ==="
       kubectl create namespace argocd || true
       kubectl create namespace monitoring || true
       kubectl create namespace workloads || true
 
-      echo "=== [6/6] Installiere Helm Stacks ==="
-      helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+      echo "=== [7/7] Installiere ArgoCD ZUERST (Prioritaet 1) ==="
       helm repo add argo https://argoproj.github.io/argo-helm
+      helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+      helm repo add grafana https://grafana.github.io/helm-charts
       helm repo update
-
-      echo "Rollout kube-prometheus-stack..."
-      helm install prometheus prometheus-community/kube-prometheus-stack \
-        --namespace monitoring \
-        --values /opt/helm-values/values-prometheus.yaml \
-        --wait --timeout 10m
 
       echo "Rollout ArgoCD..."
       helm install argo-cd argo/argo-cd \
         --namespace argocd \
         --values /opt/helm-values/values-argocd.yaml \
-        --wait --timeout 10m
+        --wait --timeout 5m
+
+      # Explizite NodePort-Garantie auf Port 30080
+      kubectl -n argocd patch svc argo-cd-argocd-server -p '{"spec": {"type": "NodePort", "ports": [{"port": 80, "targetPort": 8080, "nodePort": 30080, "name": "http"}]}}' || true
+
+      echo "Rollout schlankes Prometheus..."
+      helm install prometheus prometheus-community/prometheus \
+        --namespace monitoring \
+        --values /opt/helm-values/values-prometheus.yaml \
+        --wait --timeout 5m
+
+      echo "Rollout Grafana..."
+      helm install grafana grafana/grafana \
+        --namespace monitoring \
+        --set service.type=NodePort \
+        --set service.nodePort=30000 \
+        --set adminPassword=admin \
+        --wait --timeout 5m
 
       echo "=== Bootstrap erfolgreich abgeschlossen: $(date) ===" > /var/log/bootstrap-complete.log
 

@@ -1,0 +1,48 @@
+# ==============================================================================
+# kube-prometheus-stack Helm Values für wissenschaftliches Messframework
+# Optimiert für t3.medium (4 GB RAM) und hochauflösende Messdaten (5s Scrape)
+# ==============================================================================
+
+defaultRules:
+  create: false # Keine Default-Alerting-Regeln zur CPU/RAM-Schonung
+
+alertmanager:
+  enabled: false # Alertmanager wird für die Messdatenerhebung nicht benötigt
+
+prometheus:
+  prometheusSpec:
+    # Wissenschaftliche Messauflösung: 5 Sekunden statt 30-60s
+    scrapeInterval: "5s"
+    evaluationInterval: "5s"
+    retention: "24h" # Ephemeres Arbeiten: 24h Speicher ist mehr als ausreichend
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 384Mi
+      limits:
+        cpu: 500m
+        memory: 768Mi
+
+grafana:
+  enabled: true
+  adminPassword: "admin"
+  service:
+    type: NodePort
+    nodePort: 30000
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Erfasst Kernel- & OS-Metriken (CPU, RAM, TCP Retransmissions für Störungsanalysen)
+nodeExporter:
+  enabled: true
+
+# Erfasst Kubernetes-Objektzustände (PodRestarts, Pending, CrashLoopBackOff)
+kubeStateMetrics:
+  enabled: true

@@ -1,0 +1,29 @@
+variable "aws_region" {
+  description = "AWS Region für das Messframework"
+  type        = string
+  default     = "eu-central-1"
+}
+
+variable "instance_type" {
+  description = "EC2 Instanztyp (t3.medium: 2 vCPUs, 4 GB RAM)"
+  type        = string
+  default     = "t3.medium"
+}
+
+variable "ssh_public_key_path" {
+  description = "Pfad zum lokalen SSH Public Key"
+  type        = string
+  default     = "~/.ssh/id_ed25519.pub"
+}
+
+variable "root_volume_size" {
+  description = "Größe des gp3 Root-Volumes in GB"
+  type        = number
+  default     = 30
+}
+
+variable "override_allowed_cidr" {
+  description = "Optionales manuelles Überschreiben der Ingress-CIDR (Standard: dynamisch ermittelte eigene Public IP)"
+  type        = string
+  default     = null
+}

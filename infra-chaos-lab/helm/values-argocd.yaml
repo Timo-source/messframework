@@ -1,0 +1,81 @@
+# ==============================================================================
+# ArgoCD Helm Values für wissenschaftliches Messframework
+# Optimiert für t3.medium (4 GB RAM) und Prometheus-Observability
+# ==============================================================================
+
+global:
+  logging:
+    format: json
+    level: info
+
+# Deaktiviere unnötige Komponenten zur RAM-Schonung auf t3.medium
+dex:
+  enabled: false
+
+notifications:
+  enabled: false
+
+applicationSet:
+  enabled: false
+
+# ArgoCD API Server
+server:
+  service:
+    type: NodePort
+    nodePortHttp: 30080
+  insecure: true # Keine Zertifikatswarnungen bei direktem IP/Port-Zugriff
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+# ArgoCD Application Controller (Zentraler Untersuchungsgegenstand)
+controller:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi # Schwellenwert für OOMKilled-Experimente
+
+# ArgoCD Repo Server (Git-Interaktion & Cloning)
+repoServer:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 384Mi
+
+# Redis Cache
+redis:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi

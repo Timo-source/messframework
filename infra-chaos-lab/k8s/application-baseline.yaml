@@ -8,10 +8,10 @@ metadata:
 spec:
   project: default
   source:
-    # URL deines GitHub-Repos 'gitops-workloads'
-    repoURL: 'https://github.com/<DEIN-GITHUB-USER>/gitops-workloads.git'
+    # URL deines GitHub-Repos
+    repoURL: 'https://github.com/Timo-source/messframework.git'
     targetRevision: HEAD
-    path: base
+    path: gitops-workloads/base
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: workloads

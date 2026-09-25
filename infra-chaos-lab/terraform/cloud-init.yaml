@@ -128,12 +128,21 @@ write_files:
       set -euo pipefail
       exec > >(tee -a /var/log/bootstrap-cluster.log) 2>&1
 
-      echo "=== [1/6] Starte K3s Bootstrap: $(date) ==="
+      echo "=== [1/7] Aktiviere 4GB SSD-Swapfile fuer stabilen Betrieb ==="
+      if [ ! -f /swapfile ]; then
+        fallocate -l 4G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=4096
+        chmod 600 /swapfile
+        mkswap /swapfile
+        swapon /swapfile
+        echo "/swapfile none swap sw 0 0" >> /etc/fstab
+      fi
+
+      echo "=== [2/7] Starte K3s Bootstrap: $(date) ==="
       TOKEN_IMDS=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60" || true)
       PUBLIC_IPV4=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN_IMDS" http://169.254.169.254/latest/meta-data/public-ipv4 || true)
 
       echo "Public IP erkannt: $PUBLIC_IPV4"
-      curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik --disable metrics-server --tls-san ${PUBLIC_IPV4:-127.0.0.1} --write-kubeconfig-mode 644" sh -
+      curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik --disable metrics-server --tls-san ${PUBLIC_IPV4:-127.0.0.1} --write-kubeconfig-mode 644 --kubelet-arg fail-swap-on=false" sh -
 
       export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 

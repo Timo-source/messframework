@@ -5,9 +5,9 @@ variable "aws_region" {
 }
 
 variable "instance_type" {
-  description = "EC2 Instanztyp (t3.medium: 2 vCPUs, 4 GB RAM)"
+  description = "EC2 Instanztyp (t3.small: 2 vCPUs, 2 GB RAM, Free Tier eligible)"
   type        = string
-  default     = "t3.medium"
+  default     = "t3.small"
 }
 
 variable "ssh_public_key_path" {

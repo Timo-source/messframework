@@ -42,10 +42,12 @@ resource "aws_instance" "k3s_node" {
   }
 
   user_data = templatefile("${path.module}/cloud-init.yaml.tftpl", {
-    values_argocd_b64        = base64encode(file("${path.module}/../helm/values-argocd.yaml"))
-    values_prometheus_b64    = base64encode(file("${path.module}/../helm/values-prometheus.yaml"))
-    application_baseline_b64 = base64encode(file("${path.module}/../k8s/application-baseline.yaml"))
-    bootstrap_script_b64     = base64encode(file("${path.module}/../scripts/bootstrap-cluster.sh"))
+    values_argocd_b64        = base64gzip(file("${path.module}/../helm/values-argocd.yaml"))
+    values_prometheus_b64    = base64gzip(file("${path.module}/../helm/values-prometheus.yaml"))
+    application_baseline_b64 = base64gzip(file("${path.module}/../k8s/application-baseline.yaml"))
+    bootstrap_script_b64     = base64gzip(file("${path.module}/../scripts/bootstrap-cluster.sh"))
+    values_grafana_b64       = base64gzip(file("${path.module}/../helm/values-grafana.yaml"))
+    dashboard_resilience_b64 = base64gzip(file("${path.module}/../grafana/gitops-resilience.json"))
   })
 
   tags = {

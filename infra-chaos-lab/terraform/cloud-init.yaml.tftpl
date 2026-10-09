@@ -16,22 +16,32 @@ packages:
 write_files:
   - path: /opt/helm-values/values-argocd.yaml
     permissions: '0644'
-    encoding: b64
+    encoding: gz+b64
     content: ${values_argocd_b64}
 
   - path: /opt/helm-values/values-prometheus.yaml
     permissions: '0644'
-    encoding: b64
+    encoding: gz+b64
     content: ${values_prometheus_b64}
 
   - path: /opt/k8s/application-baseline.yaml
     permissions: '0644'
-    encoding: b64
+    encoding: gz+b64
     content: ${application_baseline_b64}
+
+  - path: /opt/helm-values/values-grafana.yaml
+    permissions: '0644'
+    encoding: gz+b64
+    content: ${values_grafana_b64}
+
+  - path: /opt/grafana/gitops-resilience.json
+    permissions: '0644'
+    encoding: gz+b64
+    content: ${dashboard_resilience_b64}
 
   - path: /usr/local/bin/bootstrap-cluster.sh
     permissions: '0755'
-    encoding: b64
+    encoding: gz+b64
     content: ${bootstrap_script_b64}
 
 runcmd:

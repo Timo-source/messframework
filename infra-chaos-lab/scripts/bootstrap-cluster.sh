@@ -68,12 +68,13 @@ helm install prometheus prometheus-community/prometheus \
   --values /opt/helm-values/values-prometheus.yaml \
   --wait --timeout 5m
 
-echo "Rollout Grafana..."
+echo "Rollout Grafana (provisionierte Datasource und Dashboards)..."
+kubectl -n monitoring create configmap grafana-dashboards \
+  --from-file=/opt/grafana/gitops-resilience.json \
+  --dry-run=client -o yaml | kubectl apply -f -
 helm install grafana grafana/grafana \
   --namespace monitoring \
-  --set service.type=NodePort \
-  --set service.nodePort=30000 \
-  --set adminPassword=admin \
+  --values /opt/helm-values/values-grafana.yaml \
   --wait --timeout 5m
 
 echo "=== [8/8] Registriere Baseline-Applikation vollautomatisch in ArgoCD ==="

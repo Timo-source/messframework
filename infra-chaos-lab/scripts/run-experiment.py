@@ -66,16 +66,17 @@ def copy_file_via_scp(host: str, key_path: str, local_path: str, remote_path: st
 
 
 def get_argocd_app_status(host: str, key_path: str, app_name: str = "baseline-workload-app") -> tuple:
-    """Liest Sync- und Health-Status einer ArgoCD Application per kubectl aus."""
+    """Liest Sync-, Health- und Conditions-Status einer ArgoCD Application per kubectl aus."""
     cmd = (
         f"sudo kubectl -n argocd get application {app_name} "
-        f"-o jsonpath='{{.status.sync.status}}|{{.status.health.status}}' 2>/dev/null || echo 'Unknown|Unknown'"
+        f"-o jsonpath='{{.status.sync.status}}|{{.status.health.status}}|{{range .status.conditions}}{{.type}} {{end}}' 2>/dev/null || echo 'Unknown|Unknown|Unknown'"
     )
     res = run_ssh_command(host, key_path, cmd, check=False)
     parts = res.stdout.strip().split("|")
-    if len(parts) == 2:
-        return parts[0], parts[1]
-    return "Unknown", "Unknown"
+    sync_stat = parts[0] if len(parts) > 0 and parts[0] else "Unknown"
+    health_stat = parts[1] if len(parts) > 1 and parts[1] else "Unknown"
+    conditions = parts[2].strip() if len(parts) > 2 else ""
+    return sync_stat, health_stat, conditions
 
 
 def main():
@@ -83,7 +84,7 @@ def main():
     parser.add_argument("--host", default=None, help="EC2 Public IP (Standard: aus Terraform)")
     parser.add_argument("--ssh-key", default=os.path.expanduser("~/.ssh/id_ed25519"), help="Pfad zum SSH Private Key")
     parser.add_argument("--duration", type=int, default=120, help="Dauer der Störung in Sekunden (Standard: 120)")
-    parser.add_argument("--probability", type=float, default=0.40, help="Paketverlust-Rate (Standard: 0.40 = 40%%)")
+    parser.add_argument("--probability", type=float, default=0.80, help="Paketverlust-Rate (Standard: 0.80 = 80%%)")
     parser.add_argument("--baseline-wait", type=int, default=30, help="Vorlaufzeit Normalbetrieb in Sekunden (Standard: 30)")
     args = parser.parse_args()
 
@@ -114,8 +115,8 @@ def main():
     print("[OK] inject-iptables.sh liegt auf der Instanz bereit.")
 
     # Status vor dem Test prüfen
-    sync_stat, health_stat = get_argocd_app_status(host, args.ssh_key)
-    print(f"[STATUS INITIAL] Sync: {sync_stat} | Health: {health_stat}")
+    sync_stat, health_stat, conditions = get_argocd_app_status(host, args.ssh_key)
+    print(f"[STATUS INITIAL] Sync: {sync_stat} | Health: {health_stat} | Conditions: {conditions or 'None'}")
 
     # 2. Vorlaufzeit (Baseline)
     print(f"\n[PHASE 1] Aufzeichnung Normalbetrieb (Vorlaufzeit {args.baseline_wait}s)...")
@@ -131,7 +132,6 @@ def main():
     )
     run_ssh_command(host, args.ssh_key, chaos_cmd)
 
-    # Warte kurz und triggere dann aktiv einen Git-Abgleich (Hard-Refresh)
     time.sleep(3)
     print("  --> Triggere aktiven Git-Abgleich (Hard Refresh) während aktiver Störung...")
     run_ssh_command(
@@ -148,22 +148,37 @@ def main():
     # Beobachte Cluster während der Störung und danach
     monitor_max_sec = args.duration + 180  # Dauer + 3 Minuten Puffer für Heilung
     poll_start = time.time()
+    last_refresh_time = time.time()
 
     print("\nBeobachte ArgoCD State Machine & Reconciliation Loop:")
     while time.time() - poll_start < monitor_max_sec:
         elapsed = int(time.time() - poll_start)
-        s_stat, h_stat = get_argocd_app_status(host, args.ssh_key)
+        s_stat, h_stat, conds = get_argocd_app_status(host, args.ssh_key)
         now_str = datetime.now().strftime("%H:%M:%S")
 
-        print(f"  [{now_str} +{elapsed:03d}s] App Status -> Sync: {s_stat:<12} | Health: {h_stat:<12}")
+        is_normal = (s_stat == "Synced" and h_stat == "Healthy" and not conds)
+        cond_info = f" [Conditions: {conds}]" if conds else ""
 
-        if (s_stat != "Synced" or h_stat != "Healthy") and not degraded_seen:
+        print(f"  [{now_str} +{elapsed:03d}s] App Status -> Sync: {s_stat:<10} | Health: {h_stat:<10}{cond_info}")
+
+        # Während der Störung alle 30s einen Reconcile erzwingen, falls noch idle
+        if elapsed < args.duration and time.time() - last_refresh_time >= 30:
+            last_refresh_time = time.time()
+            print("  --> [TRIGGER] Erneuter Abgleich während Störungsfenster...")
+            run_ssh_command(
+                host,
+                args.ssh_key,
+                "sudo kubectl -n argocd annotate application baseline-workload-app argocd.argoproj.io/refresh=hard --overwrite",
+                check=False,
+            )
+
+        if not is_normal and not degraded_seen:
             degraded_seen = True
             degraded_timestamp = time.time()
-            print(f"  --> \033[1;33m[EVENT] Transienter Zustand erreicht ({s_stat}/{h_stat})\033[0m")
+            print(f"  --> \033[1;33m[EVENT] Transienter Fehlerzustand erreicht! (Sync: {s_stat}, Health: {h_stat}, Conditions: {conds})\033[0m")
 
-        # Wenn Störungsfenster vorbei ist und wieder healthy
-        if elapsed > args.duration and degraded_seen and s_stat == "Synced" and h_stat == "Healthy":
+        # Wenn Störungsfenster vorbei ist und wieder gesund
+        if elapsed > args.duration and degraded_seen and is_normal:
             recovered_timestamp = time.time()
             print(f"  --> \033[1;32m[EVENT] Self-Healing erfolgreich! Cluster wieder 'Synced' & 'Healthy'\033[0m")
             break

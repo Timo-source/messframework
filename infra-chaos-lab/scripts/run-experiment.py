@@ -126,10 +126,20 @@ def main():
     print(f"\n[PHASE 2] Injiziere transiente Netzwerkstörung ({int(args.probability * 100)}% Drop für {args.duration}s)...")
     # Startet im Hintergrund auf EC2
     chaos_cmd = (
-        f"sudo PROBABILITY={args.probability} DURATION={args.duration} "
+        f"sudo env PROBABILITY={args.probability} DURATION={args.duration} "
         f"/home/ubuntu/inject-iptables.sh inject > /tmp/chaos.log 2>&1 &"
     )
     run_ssh_command(host, args.ssh_key, chaos_cmd)
+
+    # Warte kurz und triggere dann aktiv einen Git-Abgleich (Hard-Refresh)
+    time.sleep(3)
+    print("  --> Triggere aktiven Git-Abgleich (Hard Refresh) während aktiver Störung...")
+    run_ssh_command(
+        host,
+        args.ssh_key,
+        "sudo kubectl -n argocd annotate application baseline-workload-app argocd.argoproj.io/refresh=hard --overwrite",
+        check=False,
+    )
 
     degraded_seen = False
     degraded_timestamp = None

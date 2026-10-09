@@ -22,10 +22,13 @@ import pandas as pd
 PROMETHEUS_QUERIES: Dict[str, str] = {
     # 1. Resilienz & Latenz
     "reconcile_duration_p95_sec": (
-        'histogram_quantile(0.95, sum(rate(argocd_app_reconcile_duration_seconds_bucket[1m])) by (le))'
+        'histogram_quantile(0.95, sum(rate(argocd_app_reconcile_bucket[1m])) by (le))'
     ),
     "reconcile_duration_median_sec": (
-        'histogram_quantile(0.50, sum(rate(argocd_app_reconcile_duration_seconds_bucket[1m])) by (le))'
+        'histogram_quantile(0.50, sum(rate(argocd_app_reconcile_bucket[1m])) by (le))'
+    ),
+    "git_request_duration_p95_sec": (
+        'histogram_quantile(0.95, sum(rate(argocd_git_request_duration_seconds_bucket[1m])) by (le))'
     ),
     # 2. Integrität & Fehlerraten
     "sync_succeeded_rate": 'sum(rate(argocd_app_sync_total{phase="Succeeded"}[1m])) or vector(0)',

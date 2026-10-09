@@ -38,6 +38,9 @@ server:
 controller:
   metrics:
     enabled: true
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8082"
   resources:
     requests:
       cpu: 100m
@@ -50,6 +53,9 @@ controller:
 repoServer:
   metrics:
     enabled: true
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8084"
   resources:
     requests:
       cpu: 50m

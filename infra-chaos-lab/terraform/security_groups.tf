@@ -10,7 +10,7 @@ locals {
 
 resource "aws_security_group" "k3s_node_sg" {
   name        = "messframework-node-sg"
-  description = "Security Group fuer K3s Mess-Node (Restriktiv auf eigene Public IP)"
+  description = "Security Group für K3s Mess-Node"
   vpc_id      = aws_vpc.main.id
 
   # SSH-Zugriff

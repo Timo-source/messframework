@@ -62,7 +62,10 @@ def plot_reconciliation_latency(df: pd.DataFrame, output_dir: str, prefix: str):
         labels.append("p95")
 
     if plot_data:
-        bp = ax2.boxplot(plot_data, labels=labels, patch_artist=True)
+        try:
+            bp = ax2.boxplot(plot_data, tick_labels=labels, patch_artist=True)
+        except TypeError:
+            bp = ax2.boxplot(plot_data, labels=labels, patch_artist=True)
         colors = ["#1b9e77", "#d95f02"]
         for patch, color in zip(bp["boxes"], colors):
             patch.set_facecolor(color)

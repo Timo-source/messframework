@@ -17,13 +17,13 @@ variable "ssh_public_key_path" {
 }
 
 variable "root_volume_size" {
-  description = "Größe des gp3 Root-Volumes in GB"
+  description = "Groesse des gp3 Root-Volumes in GB"
   type        = number
   default     = 30
 }
 
 variable "override_allowed_cidr" {
-  description = "Optionales manuelles Überschreiben der Ingress-CIDR (Standard: dynamisch ermittelte eigene Public IP)"
+  description = "Optionales manuelles Ueberschreiben der Ingress-CIDR (Standard: dynamisch ermittelte eigene Public IP)"
   type        = string
   default     = null
 }

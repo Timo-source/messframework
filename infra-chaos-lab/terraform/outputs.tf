@@ -1,5 +1,5 @@
 output "instance_public_ip" {
-  description = "Öffentliche IP-Adresse der K3s EC2-Instanz: "
+  description = "Oeffentliche IP-Adresse der K3s EC2-Instanz: "
   value       = aws_instance.k3s_node.public_ip
 }
 
@@ -14,7 +14,7 @@ output "bootstrap_status_command" {
 }
 
 output "argocd_ui_url" {
-  description = "URL zur ArgoCD Web-Oberfläche: "
+  description = "URL zur ArgoCD Web-Oberflaeche: "
   value       = "http://${aws_instance.k3s_node.public_ip}:30080"
 }
 
@@ -24,6 +24,6 @@ output "argocd_initial_password_command" {
 }
 
 output "grafana_ui_url" {
-  description = "URL zur Grafana Web-Oberfläche: "
+  description = "URL zur Grafana Web-Oberflaeche: "
   value       = "http://${aws_instance.k3s_node.public_ip}:30000"
 }

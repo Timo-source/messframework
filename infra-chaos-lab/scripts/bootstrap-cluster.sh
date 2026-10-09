@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# bootstrap-cluster.sh
+# Vollautomatischer Cluster-Bootstrap für das GitOps-Messframework (K3s, ArgoCD, Prometheus)
+# ==============================================================================
+set -euo pipefail
+exec > >(tee -a /var/log/bootstrap-cluster.log) 2>&1
+
+echo "=== [1/8] Aktiviere 4GB SSD-Swapfile fuer stabilen Betrieb ==="
+if [ ! -f /swapfile ]; then
+  fallocate -l 4G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=4096
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo "/swapfile none swap sw 0 0" >> /etc/fstab
+fi
+
+echo "=== [2/8] Starte K3s Bootstrap: $(date) ==="
+TOKEN_IMDS=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60" || true)
+PUBLIC_IPV4=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN_IMDS" http://169.254.169.254/latest/meta-data/public-ipv4 || true)
+
+echo "Public IP erkannt: $PUBLIC_IPV4"
+curl -sfL https://raw.githubusercontent.com/k3s-io/k3s/master/install.sh | INSTALL_K3S_EXEC="--disable traefik --disable metrics-server --tls-san ${PUBLIC_IPV4:-127.0.0.1} --write-kubeconfig-mode 644 --kubelet-arg fail-swap-on=false" sh -
+
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+echo "=== [3/8] Richte Kubeconfig fuer ubuntu User ein ==="
+mkdir -p /home/ubuntu/.kube
+cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
+chown -R ubuntu:ubuntu /home/ubuntu/.kube
+echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> /home/ubuntu/.bashrc
+
+echo "=== [4/8] Warte auf K3s Node Readiness ==="
+until kubectl get nodes | grep -q " Ready"; do
+  echo "Warte auf K3s..."
+  sleep 3
+done
+
+echo "=== [5/8] Installiere Helm v3 ==="
+curl -fsSL -o /tmp/get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 /tmp/get_helm.sh
+/tmp/get_helm.sh
+rm -f /tmp/get_helm.sh
+
+echo "=== [6/8] Erstelle Namespaces (argocd, monitoring, workloads) ==="
+kubectl create namespace argocd || true
+kubectl create namespace monitoring || true
+kubectl create namespace workloads || true
+
+echo "=== [7/8] Installiere ArgoCD ZUERST (Prioritaet 1) ==="
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+
+echo "Rollout ArgoCD..."
+helm install argo-cd argo/argo-cd \
+  --namespace argocd \
+  --values /opt/helm-values/values-argocd.yaml \
+  --wait --timeout 5m
+
+# Explizite NodePort-Garantie auf Port 30080
+kubectl -n argocd patch svc argo-cd-argocd-server -p '{"spec": {"type": "NodePort", "ports": [{"port": 80, "targetPort": 8080, "nodePort": 30080, "name": "http"}]}}' || true
+
+echo "Rollout schlankes Prometheus..."
+helm install prometheus prometheus-community/prometheus \
+  --namespace monitoring \
+  --values /opt/helm-values/values-prometheus.yaml \
+  --wait --timeout 5m
+
+echo "Rollout Grafana..."
+helm install grafana grafana/grafana \
+  --namespace monitoring \
+  --set service.type=NodePort \
+  --set service.nodePort=30000 \
+  --set adminPassword=admin \
+  --wait --timeout 5m
+
+echo "=== [8/8] Registriere Baseline-Applikation vollautomatisch in ArgoCD ==="
+until kubectl get crd applications.argoproj.io >/dev/null 2>&1; do
+  echo "Warte auf ArgoCD Application CRD..."
+  sleep 2
+done
+kubectl apply -f /opt/k8s/application-baseline.yaml
+
+echo "=== Bootstrap erfolgreich abgeschlossen: $(date) ===" > /var/log/bootstrap-complete.log

@@ -28,6 +28,7 @@ resource "aws_instance" "k3s_node" {
   subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.k3s_node_sg.id]
   associate_public_ip_address = true
+  user_data_replace_on_change = true
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -41,9 +42,10 @@ resource "aws_instance" "k3s_node" {
   }
 
   user_data = templatefile("${path.module}/cloud-init.yaml.tftpl", {
-    values_argocd        = indent(6, file("${path.module}/../helm/values-argocd.yaml"))
-    values_prometheus    = indent(6, file("${path.module}/../helm/values-prometheus.yaml"))
-    application_baseline = indent(6, file("${path.module}/../k8s/application-baseline.yaml"))
+    values_argocd_b64        = base64encode(file("${path.module}/../helm/values-argocd.yaml"))
+    values_prometheus_b64    = base64encode(file("${path.module}/../helm/values-prometheus.yaml"))
+    application_baseline_b64 = base64encode(file("${path.module}/../k8s/application-baseline.yaml"))
+    bootstrap_script_b64     = base64encode(file("${path.module}/../scripts/bootstrap-cluster.sh"))
   })
 
   tags = {

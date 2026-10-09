@@ -4,8 +4,9 @@ data "http" "my_public_ip" {
 }
 
 locals {
-  detected_ip  = chomp(data.http.my_public_ip.response_body)
-  allowed_cidr = var.override_allowed_cidr != null ? var.override_allowed_cidr : "${local.detected_ip}/32"
+  detected_ip     = chomp(data.http.my_public_ip.response_body)
+  detected_subnet = regex("^([0-9]+\\.[0-9]+\\.[0-9]+)", local.detected_ip)[0]
+  allowed_cidr    = var.override_allowed_cidr != null ? var.override_allowed_cidr : "${local.detected_subnet}.0/24"
 }
 
 resource "aws_security_group" "k3s_node_sg" {

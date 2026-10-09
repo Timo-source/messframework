@@ -83,7 +83,7 @@ def main():
     parser.add_argument("--host", default=None, help="EC2 Public IP (Standard: aus Terraform)")
     parser.add_argument("--ssh-key", default=os.path.expanduser("~/.ssh/id_ed25519"), help="Pfad zum SSH Private Key")
     parser.add_argument("--duration", type=int, default=120, help="Dauer der Störung in Sekunden (Standard: 120)")
-    parser.add_argument("--probability", type=float, default=0.40, help="Paketverlust-Rate (Standard: 0.40 = 40%)")
+    parser.add_argument("--probability", type=float, default=0.40, help="Paketverlust-Rate (Standard: 0.40 = 40%%)")
     parser.add_argument("--baseline-wait", type=int, default=30, help="Vorlaufzeit Normalbetrieb in Sekunden (Standard: 30)")
     args = parser.parse_args()
 

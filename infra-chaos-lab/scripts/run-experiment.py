@@ -79,6 +79,21 @@ def get_argocd_app_status(host: str, key_path: str, app_name: str = "baseline-wo
     return sync_stat, health_stat, conditions
 
 
+def get_vmstat_swap(host: str, key_path: str) -> tuple:
+    """Liest pswpin und pswpout (ausgelagerte Speicherseiten) direkt aus dem Linux-Kernel (/proc/vmstat)."""
+    cmd = "grep -E '^pswp(in|out)' /proc/vmstat 2>/dev/null || echo ''"
+    res = run_ssh_command(host, key_path, cmd, check=False)
+    in_val, out_val = 0, 0
+    for line in res.stdout.strip().split("\n"):
+        parts = line.split()
+        if len(parts) == 2:
+            if parts[0] == "pswpin":
+                in_val = int(parts[1])
+            elif parts[0] == "pswpout":
+                out_val = int(parts[1])
+    return in_val, out_val
+
+
 def main():
     parser = argparse.ArgumentParser(description="Automatisiertes GitOps-Chaos-Experiment.")
     parser.add_argument("--host", default=None, help="EC2 Public IP (Standard: aus Terraform)")
@@ -121,6 +136,9 @@ def main():
     # 2. Vorlaufzeit (Baseline)
     print(f"\n[PHASE 1] Aufzeichnung Normalbetrieb (Vorlaufzeit {args.baseline_wait}s)...")
     time.sleep(args.baseline_wait)
+
+    # 2b. Swap-Purity Baseline erfassen
+    swap_in_start, swap_out_start = get_vmstat_swap(host, args.ssh_key)
 
     # 3. Störung injizieren
     start_chaos_time = time.time()
@@ -196,6 +214,21 @@ def main():
         print(f"Gemessene Mean Time to Recovery (MTTR):      {mttr_sec:.1f} Sekunden nach Fehlerbehebung")
     else:
         print("[HINWEIS] Keine vollständige Heilungs-Zyklus-Erkennung im Zeitfenster.")
+
+    # 4b. Wissenschaftliche Validierung (Swap-Purity)
+    swap_in_end, swap_out_end = get_vmstat_swap(host, args.ssh_key)
+    delta_in = swap_in_end - swap_in_start
+    delta_out = swap_out_end - swap_out_start
+
+    print("\n-----------------------------------------------------------------")
+    print("          WISSENSCHAFTLICHE VALIDIERUNG (SWAP-PURITY)")
+    print("-----------------------------------------------------------------")
+    if delta_in == 0 and delta_out == 0:
+        print("  \033[1;32m[PASS] Purity-Check bestanden: 0 Seiten ausgelagert (pswpin=0, pswpout=0).\033[0m")
+        print("         Reconciliation lief zu 100% im physischen RAM (keine Disk-I/O-Verzerrung).")
+    else:
+        print(f"  \033[1;33m[WARN] Paging aktiv: {delta_out} Seiten out, {delta_in} Seiten in.\033[0m")
+        print("         Messung könnte durch Festplatten-Latenzen beeinflusst sein!")
 
     # 5. Metriken exportieren & Plots generieren
     print("\n[PHASE 3] Ziehe Prometheus-Metriken...")

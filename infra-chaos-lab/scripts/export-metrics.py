@@ -42,6 +42,9 @@ PROMETHEUS_QUERIES: Dict[str, str] = {
     ),
     # 4. Kernel-Netzwerk-Overhead
     "tcp_retrans_rate": 'rate(node_netstat_Tcp_RetransSegs[1m]) or vector(0)',
+    # 5. Wissenschaftliche Validierung (Swap-Freiheit / Paging)
+    "swap_used_bytes": '(node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) or vector(0)',
+    "swap_page_rate": '(rate(node_vmstat_pswpin[1m]) + rate(node_vmstat_pswpout[1m])) or vector(0)',
 }
 
 

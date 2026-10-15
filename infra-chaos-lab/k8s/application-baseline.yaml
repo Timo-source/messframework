@@ -8,7 +8,6 @@ metadata:
 spec:
   project: default
   source:
-    # URL deines GitHub-Repos
     repoURL: 'https://github.com/Timo-source/messframework.git'
     targetRevision: HEAD
     path: gitops-workloads/base

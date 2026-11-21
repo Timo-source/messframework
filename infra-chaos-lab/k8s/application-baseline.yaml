@@ -9,6 +9,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/Timo-source/messframework.git'
+    # Vor finalen Messlaeufen nach Push auf festen Git-Tag pinnen (z. B. workload-v1)
     targetRevision: HEAD
     path: gitops-workloads/base
   destination:

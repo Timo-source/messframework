@@ -20,7 +20,7 @@ resource "aws_key_pair" "lab_key" {
   public_key = file(pathexpand(var.ssh_public_key_path))
 }
 
-# EC2 Single-Node K3s Instanz (t3.medium: 2 vCPUs, 4 GB RAM)
+# EC2 Single-Node K3s Instanz (t3.small: 2 vCPUs, 2 GB RAM)
 resource "aws_instance" "k3s_node" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
@@ -46,8 +46,6 @@ resource "aws_instance" "k3s_node" {
     values_prometheus_b64    = base64gzip(file("${path.module}/../helm/values-prometheus.yaml"))
     application_baseline_b64 = base64gzip(file("${path.module}/../k8s/application-baseline.yaml"))
     bootstrap_script_b64     = base64gzip(file("${path.module}/../scripts/bootstrap-cluster.sh"))
-    values_grafana_b64       = base64gzip(file("${path.module}/../helm/values-grafana.yaml"))
-    dashboard_resilience_b64 = base64gzip(file("${path.module}/../grafana/gitops-resilience.json"))
   })
 
   tags = {

@@ -49,7 +49,7 @@ resource "aws_security_group" "k3s_node_sg" {
     cidr_blocks = [local.allowed_cidr]
   }
 
-  # K8s NodePort Range (z. B. Grafana 30000, ArgoCD UI 30080)
+  # K8s NodePort Range (ArgoCD UI 30080, Prometheus 30090)
   ingress {
     description = "K8s NodePort Services"
     from_port   = 30000

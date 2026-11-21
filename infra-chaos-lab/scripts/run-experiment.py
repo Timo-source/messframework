@@ -1,247 +1,204 @@
 #!/usr/bin/env python3
-"""
-==============================================================================
-run-experiment.py
-End-to-End Orchestrator für das GitOps-Resilienz-Experiment
-Führt das vollständige Experiment automatisiert durch:
-1. Prüft Konnektivität zur EC2-Instanz (IP aus Terraform)
-2. Kopiert & startet Störungsskript (inject-iptables.sh) via SSH
-3. Misst Transitionszeiten (Healthy -> Progressing/Degraded -> Healthy)
-4. Berechnet die exakte MTTR (Mean Time to Recovery)
-5. Exportiert Prometheus-Metriken (CSV) & generiert wissenschaftliche Plots (PDF/PNG)
-==============================================================================
-"""
+"""WiFi-resilienter Orchestrator fuer das GitOps-Resilienz-Experiment."""
 
 import argparse
+import json
 import os
+import shlex
 import subprocess
 import sys
 import time
 from datetime import datetime
+from typing import Dict, List, Optional, Tuple
+
+SSH_OPTS = [
+    "-o", "StrictHostKeyChecking=no",
+    "-o", "UserKnownHostsFile=/dev/null",
+    "-o", "LogLevel=ERROR",
+    "-o", "BatchMode=yes",
+    "-o", "ConnectTimeout=10",
+    "-o", "ServerAliveInterval=10",
+    "-o", "ServerAliveCountMax=3",
+]
 
 
-def get_tf_output(output_name: str, tf_dir: str) -> str:
-    """Liest einen Output-Wert aus Terraform."""
+def get_tf_ip(tf_dir: str) -> str:
     try:
-        res = subprocess.run(
-            ["terraform", "output", "-raw", output_name],
-            cwd=tf_dir,
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        if res.returncode == 0 and res.stdout.strip():
+        res = subprocess.run(["terraform", "output", "-raw", "instance_public_ip"], cwd=tf_dir, capture_output=True, text=True, timeout=10)
+        if res.returncode == 0:
             return res.stdout.strip()
-    except Exception as exc:
-        print(f"[WARN] Konnte '{output_name}' nicht aus Terraform lesen: {exc}")
+    except Exception:
+        pass
     return ""
 
 
-def run_ssh_command(host: str, key_path: str, command: str, check: bool = True) -> subprocess.CompletedProcess:
-    """Führt einen Befehl per SSH auf der EC2-Instanz aus."""
-    ssh_cmd = [
-        "ssh",
-        "-o", "StrictHostKeyChecking=no",
-        "-o", "UserKnownHostsFile=/dev/null",
-        "-o", "LogLevel=ERROR",
-        "-i", key_path,
-        f"ubuntu@{host}",
-        command,
-    ]
-    return subprocess.run(ssh_cmd, capture_output=True, text=True, check=check)
+def ssh_run(host: str, key: str, cmd: str, check: bool = True, timeout: int = 20) -> subprocess.CompletedProcess:
+    return subprocess.run(["ssh", *SSH_OPTS, "-i", key, f"ubuntu@{host}", cmd], capture_output=True, text=True, check=check, timeout=timeout)
 
 
-def copy_file_via_scp(host: str, key_path: str, local_path: str, remote_path: str) -> None:
-    """Überträgt eine Datei per SCP auf die EC2-Instanz."""
-    scp_cmd = [
-        "scp",
-        "-o", "StrictHostKeyChecking=no",
-        "-o", "UserKnownHostsFile=/dev/null",
-        "-o", "LogLevel=ERROR",
-        "-i", key_path,
-        local_path,
-        f"ubuntu@{host}:{remote_path}",
-    ]
-    subprocess.run(scp_cmd, check=True)
+def scp_transfer(src: str, dst: str, key: str, timeout: int = 60) -> None:
+    subprocess.run(["scp", *SSH_OPTS, "-i", key, src, dst], check=True, timeout=timeout)
 
 
-def get_argocd_app_status(host: str, key_path: str, app_name: str = "baseline-workload-app") -> tuple:
-    """Liest Sync-, Health- und Conditions-Status einer ArgoCD Application per kubectl aus."""
-    cmd = (
-        f"sudo kubectl -n argocd get application {app_name} "
-        f"-o jsonpath='{{.status.sync.status}}|{{.status.health.status}}|{{range .status.conditions}}{{.type}} {{end}}' 2>/dev/null || echo 'Unknown|Unknown|Unknown'"
+def poll_remote(host: str, key: str, remote_dir: str, offset: int, pid: Optional[int]) -> Tuple[str, int, str, bool]:
+    pid_check = f"[ -d /proc/{pid} ]" if pid else f"pgrep -u root -f {shlex.quote('node-runner.py.*' + os.path.basename(remote_dir))} >/dev/null 2>&1"
+    script = (
+        f"LOG={shlex.quote(remote_dir + '/runner.log')}; "
+        f"STATE=RUNNING; "
+        f"if [ -f {shlex.quote(remote_dir + '/DONE')} ]; then STATE=DONE; "
+        f"elif [ -f {shlex.quote(remote_dir + '/FAILED')} ]; then STATE=FAILED; "
+        f"elif ! ({pid_check}); then STATE=STOPPED; fi; "
+        f"SIZE=$(stat -c%s \"$LOG\" 2>/dev/null || echo 0); "
+        f"echo \"__STATE__:$STATE:$SIZE\"; "
+        f"if [ \"$SIZE\" -ge {offset} ]; then tail -c +{offset} \"$LOG\" 2>/dev/null || true; fi"
     )
-    res = run_ssh_command(host, key_path, cmd, check=False)
-    parts = res.stdout.strip().split("|")
-    sync_stat = parts[0] if len(parts) > 0 and parts[0] else "Unknown"
-    health_stat = parts[1] if len(parts) > 1 and parts[1] else "Unknown"
-    conditions = parts[2].strip() if len(parts) > 2 else ""
-    return sync_stat, health_stat, conditions
+    try:
+        res = ssh_run(host, key, script, check=False, timeout=15)
+        lines = res.stdout.splitlines(keepends=True)
+        if res.returncode == 255 or not lines or not lines[0].startswith("__STATE__:"):
+            return "NET_ERR", offset, "", False
+        _, state, size = lines[0].strip().split(":")
+        return state, int(size) + 1, "".join(lines[1:]), True
+    except (subprocess.TimeoutExpired, OSError):
+        return "NET_ERR", offset, "", False
 
 
-def get_vmstat_swap(host: str, key_path: str) -> tuple:
-    """Liest pswpin und pswpout (ausgelagerte Speicherseiten) direkt aus dem Linux-Kernel (/proc/vmstat)."""
-    cmd = "grep -E '^pswp(in|out)' /proc/vmstat 2>/dev/null || echo ''"
-    res = run_ssh_command(host, key_path, cmd, check=False)
-    in_val, out_val = 0, 0
-    for line in res.stdout.strip().split("\n"):
-        parts = line.split()
-        if len(parts) == 2:
-            if parts[0] == "pswpin":
-                in_val = int(parts[1])
-            elif parts[0] == "pswpout":
-                out_val = int(parts[1])
-    return in_val, out_val
+def print_summary(summary: Dict) -> None:
+    agg = summary.get("aggregate", {})
+    runs = summary.get("runs", [])
+    print(f"\n=== Ergebnisuebersicht: Batch {summary.get('batch_id')} ===")
+    print(f"Laeufe: {agg.get('runs_total')} | Geheilt: {agg.get('runs_recovered')} | Swap-Rein: {agg.get('runs_swap_pure')}")
+    print(f"{'Lauf':<6} {'Dwell[s]':<9} {'MTTR[s]':<9} {'p95[s]':<8} {'Avg[s]':<8} {'CtrlRAM':<9} {'RepoRAM':<9} {'Retr/s':<8} {'Drops':<7} {'Swap'}")
+
+    for r in runs:
+        ps = r.get("prometheus_stats") or {}
+        dwell = f"{r['dwell_time_sec']:.1f}" if r.get("dwell_time_sec") is not None else "-"
+        mttr = f"{r['mttr_post_fault_sec']:.1f}" if r.get("mttr_post_fault_sec") is not None else "-"
+        p95 = ps.get("reconcile_duration_p95_sec", {}).get("max", 0.0)
+        avg = ps.get("reconcile_duration_avg_sec", {}).get("max", 0.0)
+        ctrl = ps.get("controller_memory_bytes", {}).get("max", 0.0) / (1024 * 1024)
+        repo = ps.get("repo_server_memory_bytes", {}).get("max", 0.0) / (1024 * 1024)
+        retr = ps.get("pod_tcp_retrans_rate", {}).get("max", 0.0)
+        swap = "PASS" if (r.get("swap_purity") or {}).get("passed") else "FAIL"
+        print(f"#{r['run_index']:<5} {dwell:<9} {mttr:<9} {p95:<8.3f} {avg:<8.3f} {ctrl:<9.1f} {repo:<9.1f} {retr:<8.2f} {r.get('kernel_drops_total', 0):<7} {swap}")
+
+    if agg.get("runs_total", 0) > 1:
+        print("-" * 80)
+        for label, key in [
+            ("Dwell Time [s]", "dwell_time_sec"),
+            ("MTTR post-fault [s]", "mttr_post_fault_sec"),
+            ("Peak Reconcile p95 [s]", "peak_reconcile_p95_sec"),
+            ("Peak Reconcile Avg [s]", "peak_reconcile_avg_sec"),
+            ("Peak Controller RAM [MiB]", "peak_controller_memory_mib"),
+            ("Peak Repo-Server RAM [MiB]", "peak_repo_server_memory_mib"),
+            ("Peak Monitoring RAM [MiB]", "peak_monitoring_memory_mib"),
+        ]:
+            st = agg.get(key) or {}
+            if st.get("count", 0) > 0:
+                print(f"  {label:<28} Mean={st['mean']:7.2f} | SD={st['std']:6.2f} | Med={st['median']:7.2f} | {st['min']:.2f}..{st['max']:.2f}")
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Automatisiertes GitOps-Chaos-Experiment.")
-    parser.add_argument("--host", default=None, help="EC2 Public IP (Standard: aus Terraform)")
-    parser.add_argument("--ssh-key", default=os.path.expanduser("~/.ssh/id_ed25519"), help="Pfad zum SSH Private Key")
-    parser.add_argument("--duration", type=int, default=120, help="Dauer der Störung in Sekunden (Standard: 120)")
-    parser.add_argument("--probability", type=float, default=0.80, help="Paketverlust-Rate (Standard: 0.80 = 80%%)")
-    parser.add_argument("--baseline-wait", type=int, default=30, help="Vorlaufzeit Normalbetrieb in Sekunden (Standard: 30)")
+def main() -> None:
+    parser = argparse.ArgumentParser(description="WiFi-resilienter GitOps-Chaos-Orchestrator.")
+    parser.add_argument("--host", default=None)
+    parser.add_argument("--ssh-key", default=os.path.expanduser("~/.ssh/id_ed25519"))
+    parser.add_argument("--runs", type=int, default=1)
+    parser.add_argument("--duration", type=int, default=120)
+    parser.add_argument("--probability", type=float, default=0.80)
+    parser.add_argument("--baseline-wait", type=int, default=30)
+    parser.add_argument("--post-wait", type=int, default=90)
+    parser.add_argument("--cooldown", type=int, default=60)
+    parser.add_argument("--no-drift", action="store_true")
+    parser.add_argument("--attach", default=None)
+    parser.add_argument("--skip-plots", action="store_true")
     args = parser.parse_args()
 
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    tf_dir = os.path.join(base_dir, "terraform")
-    scripts_dir = os.path.join(base_dir, "scripts")
-    analysis_dir = os.path.join(base_dir, "analysis")
+    data_dir = os.path.join(base_dir, "data")
+    os.makedirs(data_dir, exist_ok=True)
 
-    host = args.host or get_tf_output("instance_public_ip", tf_dir)
+    host = args.host or get_tf_ip(os.path.join(base_dir, "terraform"))
     if not host:
-        print("[FEHLER] Keine EC2-Host-IP ermittelt. Läuft das Cluster? (terraform apply)", file=sys.stderr)
+        print("[FEHLER] Keine EC2-IP ermittelt. Laeuft das Cluster? (terraform apply)", file=sys.stderr)
         sys.exit(1)
 
-    print("=================================================================")
-    print("      GITOPS RESILIENZ- & RECONCILIATION-EXPERIMENT")
-    print("=================================================================")
-    print(f"Ziel-Host:               {host}")
-    print(f"Störungsdauer:           {args.duration}s")
-    print(f"Paketverlust:            {int(args.probability * 100)}%")
-    print(f"SSH-Schlüssel:           {args.ssh_key}")
-    print("-----------------------------------------------------------------")
+    batch_id = args.attach or datetime.now().strftime("%Y%m%d_%H%M%S")
+    remote_dir = f"/home/ubuntu/chaos-runs/{batch_id}"
+    remote_pid: Optional[int] = None
 
-    # 1. Konnektivität & Vorbereitung
-    print("\n[PHASE 0] Prüfe Verbindung & übertrage Störungs-Skript...")
-    inject_script = os.path.join(scripts_dir, "inject-iptables.sh")
-    copy_file_via_scp(host, args.ssh_key, inject_script, "/home/ubuntu/inject-iptables.sh")
-    run_ssh_command(host, args.ssh_key, "chmod +x /home/ubuntu/inject-iptables.sh")
-    print("[OK] inject-iptables.sh liegt auf der Instanz bereit.")
+    if not args.attach:
+        print(f"Starte Batch {batch_id} auf {host} (runs={args.runs}, p={args.probability:.2f}, dur={args.duration}s)...")
+        ssh_run(host, args.ssh_key, f"mkdir -p {shlex.quote(remote_dir)}")
+        for fname in ("inject-iptables.sh", "node-runner.py"):
+            scp_transfer(os.path.join(base_dir, "scripts", fname), f"ubuntu@{host}:/home/ubuntu/{fname}", args.ssh_key, timeout=30)
 
-    # Status vor dem Test prüfen
-    sync_stat, health_stat, conditions = get_argocd_app_status(host, args.ssh_key)
-    print(f"[STATUS INITIAL] Sync: {sync_stat} | Health: {health_stat} | Conditions: {conditions or 'None'}")
+        ssh_run(host, args.ssh_key, "sed -i 's/\\r$//' /home/ubuntu/inject-iptables.sh /home/ubuntu/node-runner.py && chmod +x /home/ubuntu/inject-iptables.sh /home/ubuntu/node-runner.py")
+        runner_args = (
+            f"--batch-id {shlex.quote(batch_id)} --out-dir {shlex.quote(remote_dir)} "
+            f"--runs {args.runs} --duration {args.duration} --probability {args.probability:.4f} "
+            f"--baseline-wait {args.baseline_wait} --post-wait {args.post_wait} --cooldown {args.cooldown}"
+            + (" --no-drift" if args.no_drift else "")
+        )
+        inner = f"nohup python3 -u /home/ubuntu/node-runner.py {runner_args} > {shlex.quote(remote_dir + '/runner.log')} 2>&1 < /dev/null & echo $!"
+        res = ssh_run(host, args.ssh_key, f"sudo sh -c {shlex.quote(inner)}")
+        try:
+            remote_pid = int(res.stdout.strip().splitlines()[-1])
+        except Exception:
+            remote_pid = None
+        print(f"[OK] node-runner.py aktiv (PID: {remote_pid or 'unbekannt'}).")
+    else:
+        print(f"Verbinde wieder mit Batch {batch_id} auf {host}...")
 
-    # 2. Vorlaufzeit (Baseline)
-    print(f"\n[PHASE 1] Aufzeichnung Normalbetrieb (Vorlaufzeit {args.baseline_wait}s)...")
-    time.sleep(args.baseline_wait)
-
-    # 2b. Swap-Purity Baseline erfassen
-    swap_in_start, swap_out_start = get_vmstat_swap(host, args.ssh_key)
-
-    # 3. Störung injizieren
-    start_chaos_time = time.time()
-    print(f"\n[PHASE 2] Injiziere transiente Netzwerkstörung ({int(args.probability * 100)}% Drop für {args.duration}s)...")
-    # Startet im Hintergrund auf EC2
-    chaos_cmd = (
-        f"sudo env PROBABILITY={args.probability} DURATION={args.duration} "
-        f"/home/ubuntu/inject-iptables.sh inject > /tmp/chaos.log 2>&1 &"
-    )
-    run_ssh_command(host, args.ssh_key, chaos_cmd)
-
-    time.sleep(3)
-    print("  --> Triggere aktiven Git-Abgleich (Hard Refresh) während aktiver Störung...")
-    run_ssh_command(
-        host,
-        args.ssh_key,
-        "sudo kubectl -n argocd annotate application baseline-workload-app argocd.argoproj.io/refresh=hard --overwrite",
-        check=False,
-    )
-
-    degraded_seen = False
-    degraded_timestamp = None
-    recovered_timestamp = None
-
-    # Beobachte Cluster während der Störung und danach
-    monitor_max_sec = args.duration + 180  # Dauer + 3 Minuten Puffer für Heilung
-    poll_start = time.time()
-    last_refresh_time = time.time()
-
-    print("\nBeobachte ArgoCD State Machine & Reconciliation Loop:")
-    while time.time() - poll_start < monitor_max_sec:
-        elapsed = int(time.time() - poll_start)
-        s_stat, h_stat, conds = get_argocd_app_status(host, args.ssh_key)
-        now_str = datetime.now().strftime("%H:%M:%S")
-
-        is_normal = (s_stat == "Synced" and h_stat == "Healthy" and not conds)
-        cond_info = f" [Conditions: {conds}]" if conds else ""
-
-        print(f"  [{now_str} +{elapsed:03d}s] App Status -> Sync: {s_stat:<10} | Health: {h_stat:<10}{cond_info}")
-
-        # Während der Störung alle 30s einen Reconcile erzwingen, falls noch idle
-        if elapsed < args.duration and time.time() - last_refresh_time >= 30:
-            last_refresh_time = time.time()
-            print("  --> [TRIGGER] Erneuter Abgleich während Störungsfenster...")
-            run_ssh_command(
-                host,
-                args.ssh_key,
-                "sudo kubectl -n argocd annotate application baseline-workload-app argocd.argoproj.io/refresh=hard --overwrite",
-                check=False,
-            )
-
-        if not is_normal and not degraded_seen:
-            degraded_seen = True
-            degraded_timestamp = time.time()
-            print(f"  --> \033[1;33m[EVENT] Transienter Fehlerzustand erreicht! (Sync: {s_stat}, Health: {h_stat}, Conditions: {conds})\033[0m")
-
-        # Wenn Störungsfenster vorbei ist und wieder gesund
-        if elapsed > args.duration and degraded_seen and is_normal:
-            recovered_timestamp = time.time()
-            print(f"  --> \033[1;32m[EVENT] Self-Healing erfolgreich! Cluster wieder 'Synced' & 'Healthy'\033[0m")
+    offset, net_warned = 1, False
+    while True:
+        state, offset, chunk, ok = poll_remote(host, args.ssh_key, remote_dir, offset, remote_pid)
+        if not ok:
+            if not net_warned:
+                print("\n[WARN] SSH unterbrochen – Messung laeuft lokal auf EC2 weiter...", flush=True)
+                net_warned = True
+            time.sleep(5)
+            continue
+        if net_warned:
+            print("[OK] SSH wiederhergestellt.\n", flush=True)
+            net_warned = False
+        if chunk:
+            sys.stdout.write(chunk)
+            sys.stdout.flush()
+        if state == "DONE":
             break
-
+        if state in ("FAILED", "STOPPED"):
+            try:
+                scp_transfer(f"ubuntu@{host}:{remote_dir}/runner.log", os.path.join(data_dir, f"runner_{batch_id}.log"), args.ssh_key)
+            except Exception:
+                pass
+            print(f"\n[FEHLER] Remote-Laeufer beendet mit Status {state}.", file=sys.stderr)
+            sys.exit(1)
         time.sleep(5)
 
-    # 4. MTTR Auswertung
-    print("\n-----------------------------------------------------------------")
-    print("                     EXPERIMENT-ERGEBNIS")
-    print("-----------------------------------------------------------------")
-    if degraded_timestamp and recovered_timestamp:
-        mttr_sec = recovered_timestamp - (start_chaos_time + args.duration)
-        total_degraded_time = recovered_timestamp - degraded_timestamp
-        print(f"Dauer des transienten Zustands (Dwell Time): {total_degraded_time:.1f} Sekunden")
-        print(f"Gemessene Mean Time to Recovery (MTTR):      {mttr_sec:.1f} Sekunden nach Fehlerbehebung")
-    else:
-        print("[HINWEIS] Keine vollständige Heilungs-Zyklus-Erkennung im Zeitfenster.")
+    local_summary = os.path.join(data_dir, f"summary_{batch_id}.json")
+    scp_transfer(f"ubuntu@{host}:{remote_dir}/summary_{batch_id}.json", local_summary, args.ssh_key)
+    scp_transfer(f"ubuntu@{host}:{remote_dir}/runner.log", os.path.join(data_dir, f"runner_{batch_id}.log"), args.ssh_key)
 
-    # 4b. Wissenschaftliche Validierung (Swap-Purity)
-    swap_in_end, swap_out_end = get_vmstat_swap(host, args.ssh_key)
-    delta_in = swap_in_end - swap_in_start
-    delta_out = swap_out_end - swap_out_start
+    with open(local_summary, "r", encoding="utf-8") as fh:
+        summary = json.load(fh)
 
-    print("\n-----------------------------------------------------------------")
-    print("          WISSENSCHAFTLICHE VALIDIERUNG (SWAP-PURITY)")
-    print("-----------------------------------------------------------------")
-    if delta_in == 0 and delta_out == 0:
-        print("  \033[1;32m[PASS] Purity-Check bestanden: 0 Seiten ausgelagert (pswpin=0, pswpout=0).\033[0m")
-        print("         Reconciliation lief zu 100% im physischen RAM (keine Disk-I/O-Verzerrung).")
-    else:
-        print(f"  \033[1;33m[WARN] Paging aktiv: {delta_out} Seiten out, {delta_in} Seiten in.\033[0m")
-        print("         Messung könnte durch Festplatten-Latenzen beeinflusst sein!")
+    csvs: List[str] = []
+    for run in summary.get("runs", []):
+        if run.get("csv_file"):
+            local_csv = os.path.join(data_dir, run["csv_file"])
+            scp_transfer(f"ubuntu@{host}:{remote_dir}/{run['csv_file']}", local_csv, args.ssh_key)
+            csvs.append(local_csv)
 
-    # 5. Metriken exportieren & Plots generieren
-    print("\n[PHASE 3] Ziehe Prometheus-Metriken...")
-    export_script = os.path.join(scripts_dir, "export-metrics.py")
-    subprocess.run([sys.executable, export_script, "--host", host, "--minutes", "15"], check=True)
+    print_summary(summary)
 
-    print("\n[PHASE 4] Generiere wissenschaftliche Diagramme...")
-    plot_script = os.path.join(analysis_dir, "plot-results.py")
-    subprocess.run([sys.executable, plot_script], check=True)
+    if not args.skip_plots and csvs:
+        plot_script = os.path.join(base_dir, "analysis", "plot-results.py")
+        for csv_path in csvs:
+            subprocess.run([sys.executable, plot_script, "--input", csv_path], check=True)
+        if len(summary.get("runs", [])) >= 2:
+            subprocess.run([sys.executable, plot_script, "--summary", local_summary], check=True)
 
-    print("\n=================================================================")
-    print("[OK] Experiment vollständig abgeschlossen! Diagramme & CSV bereit.")
-    print("=================================================================")
+    print(f"\n[OK] Fertig: {local_summary}")
 
 
 if __name__ == "__main__":

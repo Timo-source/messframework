@@ -1,12 +1,9 @@
-# ==============================================================================
-# Prometheus Helm Values für schlankes, hochauflösendes Messframework
-# Standalone Prometheus ohne CRD-Bloat – optimiert für t3.small (2 GB RAM)
-# ==============================================================================
+# Prometheus Helm Values (Chart 29.48.0 / Prometheus v3.16.0) fuer 5s-Messaufloesung
 
 server:
-  retention: "24h" # Ephemeres Arbeiten: 24h Speicher genügt vollkommen
+  retention: "24h"
   global:
-    scrape_interval: 5s     # Wissenschaftliche Auflösung: 5 Sekunden
+    scrape_interval: 5s
     scrape_timeout: 4s
     evaluation_interval: 5s
   service:
@@ -20,15 +17,26 @@ server:
       cpu: 300m
       memory: 384Mi
 
-# Erfasst Kernel- & OS-Metriken (CPU, RAM, TCP Retransmissions für Störungsanalysen)
 prometheus-node-exporter:
   enabled: true
+  resources:
+    requests:
+      cpu: 10m
+      memory: 24Mi
+    limits:
+      cpu: 50m
+      memory: 48Mi
 
-# Erfasst Kubernetes-Objektzustände (PodRestarts, Pending, CrashLoopBackOff)
 kube-state-metrics:
   enabled: true
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi
 
-# Deaktiviere ungenutzte Komponenten zur RAM-Schonung
 alertmanager:
   enabled: false
 

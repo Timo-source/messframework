@@ -30,7 +30,7 @@ ENV/
 .pytest_cache/
 
 # ==============================================================================
-# OS & IDE
+# OS, IDE & Lokale Arbeitsdateien
 # ==============================================================================
 .DS_Store
 Thumbs.db
@@ -39,3 +39,5 @@ desktop.ini
 .idea/
 *.swp
 *~
+CISCvsRISC.pdf
+LaTEX-Formatvorlage zum Anfertigen wissenschaftlicher Arbeiten.zip

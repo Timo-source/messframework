@@ -1,14 +1,14 @@
-# ==============================================================================
-# ArgoCD Helm Values für wissenschaftliches Messframework
-# Optimiert für t3.small / t3.medium und sofortige Erreichbarkeit
-# ==============================================================================
+# ArgoCD Helm Values (Chart 10.18.2 / ArgoCD v3.6.2) fuer ressourcenbeschränkte K3s-Umgebung
 
 global:
   logging:
     format: json
     level: info
 
-# Deaktiviere unbenötigte Sub-Komponenten zur maximalen RAM-Schonung
+configs:
+  params:
+    server.insecure: true
+
 dex:
   enabled: false
 
@@ -18,14 +18,10 @@ notifications:
 applicationSet:
   enabled: false
 
-# ArgoCD API & Web Server
 server:
   service:
     type: NodePort
     nodePortHttp: 30080
-    ports:
-      http: 80
-  insecure: true # Deaktiviert TLS-Warnungen bei direktem IP/NodePort-Zugriff
   resources:
     requests:
       cpu: 50m
@@ -34,7 +30,6 @@ server:
       cpu: 250m
       memory: 256Mi
 
-# ArgoCD Application Controller (Zentraler Untersuchungsgegenstand der Arbeit)
 controller:
   metrics:
     enabled: true
@@ -47,9 +42,8 @@ controller:
       memory: 256Mi
     limits:
       cpu: 500m
-      memory: 512Mi # Definierter Schwellenwert für Resilienz- und OOM-Experimente
+      memory: 512Mi
 
-# ArgoCD Repo Server (Git-Klonen & Manifest-Generierung)
 repoServer:
   metrics:
     enabled: true
@@ -64,7 +58,6 @@ repoServer:
       cpu: 300m
       memory: 384Mi
 
-# Redis Cache
 redis:
   resources:
     requests:

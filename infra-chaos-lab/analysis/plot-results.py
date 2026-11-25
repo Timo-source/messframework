@@ -5,6 +5,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -58,12 +59,25 @@ def shade_phases(ax, df: pd.DataFrame, with_labels: bool = False) -> None:
 
 def draw_box(ax, groups: List[np.ndarray], labels: List[str], colors: List[str]) -> None:
     try:
-        bp = ax.boxplot(groups, tick_labels=labels, patch_artist=True)
+        bp = ax.boxplot(groups, tick_labels=labels, patch_artist=True, showfliers=False)
     except TypeError:
-        bp = ax.boxplot(groups, labels=labels, patch_artist=True)
+        bp = ax.boxplot(groups, labels=labels, patch_artist=True, showfliers=False)
     for patch, col in zip(bp["boxes"], colors):
         patch.set_facecolor(col)
         patch.set_alpha(0.6)
+
+
+def add_headroom(ax, factor: float = 1.28, min_top: float = 0.5, pad_bottom: bool = False) -> None:
+    ys: List[float] = []
+    for line in ax.get_lines():
+        ydata = np.asarray(line.get_ydata(), dtype=float)
+        finite = ydata[np.isfinite(ydata)]
+        if finite.size:
+            ys.extend([float(np.min(finite)), float(np.max(finite))])
+    ymax = max(ys) if ys else 0.0
+    top = max(min_top, ymax * factor)
+    bottom = -0.04 * top if pad_bottom or (ys and min(ys) <= 0.0) else 0.0
+    ax.set_ylim(bottom, top)
 
 
 def strip_box(ax, specs: List[Tuple[str, List[Optional[float]], str]], title: str, ylabel: str) -> None:
@@ -76,8 +90,14 @@ def strip_box(ax, specs: List[Tuple[str, List[Optional[float]], str]], title: st
         ax.text(0.5, 0.5, "Keine Daten", ha="center", va="center", transform=ax.transAxes)
         return
     draw_box(ax, [np.array(v) for _, v, _ in valid], [lbl for lbl, _, _ in valid], [col for _, _, col in valid])
+    all_vals = [v for _, vals, _ in valid for v in vals]
     for idx, (_, vals, _) in enumerate(valid, start=1):
-        ax.scatter(np.full(len(vals), float(idx)), vals, color="#222222", zorder=5, s=28, alpha=0.8)
+        offsets = np.linspace(-0.07, 0.07, len(vals)) if len(vals) > 1 else np.array([0.0])
+        ax.scatter(float(idx) + offsets, vals, color="#222222", zorder=5, s=28, alpha=0.85)
+    global_min, global_max = min(all_vals), max(all_vals)
+    top = max(0.5, global_max * 1.18)
+    if global_min >= 0.0:
+        ax.set_ylim(-0.04 * top, top)
 
 
 def plot_latency_timeseries(df: pd.DataFrame, out_dir: str, prefix: str) -> None:
@@ -95,7 +115,8 @@ def plot_latency_timeseries(df: pd.DataFrame, out_dir: str, prefix: str) -> None
     ax1.set_title("A: Reconcile-Latenz im Versuchsverlauf (keine Interpolation bei Inaktivität)")
     ax1.set_ylabel("Latenz [s]")
     ax1.grid(True)
-    ax1.legend(loc="upper left", ncol=2)
+    add_headroom(ax1, factor=1.38, min_top=0.5)
+    ax1.legend(loc="upper left", ncol=3)
 
     shade_phases(ax2, df)
     if "git_request_duration_p95_sec" in df.columns:
@@ -104,10 +125,11 @@ def plot_latency_timeseries(df: pd.DataFrame, out_dir: str, prefix: str) -> None
     ax2.set_ylabel("Latenz [s]")
     ax2.set_xlabel("Zeitpunkt (UTC)")
     ax2.grid(True)
+    add_headroom(ax2, factor=1.28, min_top=0.5)
     ax2.legend(loc="upper left")
     ax2.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
 
-    save_fig(out_dir, f"{prefix}_latency_distribution")
+    save_fig(out_dir, f"{prefix}latency_distribution")
 
 
 def plot_resources(df: pd.DataFrame, out_dir: str, prefix: str) -> None:
@@ -115,19 +137,25 @@ def plot_resources(df: pd.DataFrame, out_dir: str, prefix: str) -> None:
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10.5, 5.6), sharex=True)
 
     shade_phases(ax1, df, with_labels=True)
+    max_ram_mib = 0.0
     for col, lbl, c, ls in [
         ("controller_memory_bytes", "Controller RAM (Working Set)", "#7570b3", "-"),
         ("repo_server_memory_bytes", "Repo-Server RAM", "#377eb8", "-"),
         ("monitoring_memory_bytes", "Monitoring-Namespace (Observer)", "#666666", "--"),
     ]:
         if col in df.columns:
-            ax1.plot(df.index, df[col] / (1024 * 1024), label=lbl, color=c, linestyle=ls)
+            vals_mib = df[col] / (1024 * 1024)
+            finite = vals_mib.dropna()
+            if not finite.empty:
+                max_ram_mib = max(max_ram_mib, float(finite.max()))
+            ax1.plot(df.index, vals_mib, label=lbl, color=c, linestyle=ls)
     ax1.axhline(y=512, color="#d95f02", linestyle=":", label="Controller Limit (512 MiB)")
     ax1.axhline(y=384, color="#377eb8", linestyle=":", alpha=0.8, label="Repo-Server Limit (384 MiB)")
     ax1.set_title("A: Speicherverbrauch (Control Plane vs. Limits & Observer-Overhead)")
     ax1.set_ylabel("RAM [MiB]")
     ax1.grid(True)
-    ax1.legend(loc="upper left", ncol=2)
+    ax1.set_ylim(0.0, max(720.0, max_ram_mib * 1.35))
+    ax1.legend(loc="upper left", ncol=3)
 
     shade_phases(ax2, df)
     for col, lbl, c, ls in [
@@ -141,10 +169,11 @@ def plot_resources(df: pd.DataFrame, out_dir: str, prefix: str) -> None:
     ax2.set_ylabel("CPU [mCores]")
     ax2.set_xlabel("Zeitpunkt (UTC)")
     ax2.grid(True)
-    ax2.legend(loc="upper left", ncol=2)
+    add_headroom(ax2, factor=1.32, min_top=5.0, pad_bottom=True)
+    ax2.legend(loc="upper left", ncol=3)
     ax2.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
 
-    save_fig(out_dir, f"{prefix}_controller_resources")
+    save_fig(out_dir, f"{prefix}controller_resources")
 
 
 def plot_resilience_timeline(df: pd.DataFrame, out_dir: str, prefix: str) -> None:
@@ -159,7 +188,8 @@ def plot_resilience_timeline(df: pd.DataFrame, out_dir: str, prefix: str) -> Non
     ax1.set_title("Mehrschichtige Fehlerkette: Latenz, Operationsraten und Kernel-Netzwerk")
     ax1.set_ylabel("Latenz [s]")
     ax1.grid(True)
-    ax1.legend(loc="upper left")
+    add_headroom(ax1, factor=1.38, min_top=0.5)
+    ax1.legend(loc="upper left", ncol=2)
 
     shade_phases(ax2, df)
     for col, lbl, c in [
@@ -171,10 +201,11 @@ def plot_resilience_timeline(df: pd.DataFrame, out_dir: str, prefix: str) -> Non
             ax2.plot(df.index, df[col], label=lbl, color=c)
     ax2.set_ylabel("Ops / s")
     ax2.grid(True)
+    add_headroom(ax2, factor=1.45, min_top=0.02, pad_bottom=True)
     if "app_degraded_state" in df.columns:
         ax2_t = ax2.twinx()
         ax2_t.step(df.index, df["app_degraded_state"], where="post", color="#e41a1c", alpha=0.65, linestyle=":", label="Degraded/Drift (0/1)")
-        ax2_t.set_ylim(-0.1, 1.35)
+        ax2_t.set_ylim(-0.08, 1.50)
         ax2_t.set_yticks([0, 1])
         ax2_t.set_ylabel("Status [0/1]", color="#e41a1c")
         l1, lb1 = ax2.get_legend_handles_labels()
@@ -194,10 +225,11 @@ def plot_resilience_timeline(df: pd.DataFrame, out_dir: str, prefix: str) -> Non
     ax3.set_ylabel("Pakete / s")
     ax3.set_xlabel("Zeitpunkt (UTC)")
     ax3.grid(True)
-    ax3.legend(loc="upper left")
+    add_headroom(ax3, factor=1.40, min_top=0.5, pad_bottom=True)
+    ax3.legend(loc="upper left", ncol=2)
     ax3.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
 
-    save_fig(out_dir, f"{prefix}_resilience_timeline")
+    save_fig(out_dir, f"{prefix}resilience_timeline")
 
 
 def _peak(run: Dict[str, Any], metric: str, scale: float = 1.0) -> Optional[float]:
@@ -206,33 +238,42 @@ def _peak(run: Dict[str, Any], metric: str, scale: float = 1.0) -> Optional[floa
 
 
 def plot_summary_batches(summary_paths: List[str], out_dir: str) -> None:
-    """Plot 4: Cross-Run-Verteilung fuer einen Batch (N>=2) oder mehrere Sweep-Batches."""
-    batches = []
+    """Plot 4: Cross-Run-Verteilung fuer eine Stufe (N>=2) oder mehrere Sweep-Stufen (merged pro p)."""
+    grouped: Dict[int, List[Dict[str, Any]]] = {}
     for p in summary_paths:
         with open(p, "r", encoding="utf-8") as fh:
-            batches.append(json.load(fh))
+            b = json.load(fh)
+        prob = int(round(((b.get("config") or {}).get("probability", 0.0)) * 100))
+        grouped.setdefault(prob, []).extend(b.get("runs") or [])
 
-    if len(batches) == 1 and len(batches[0].get("runs") or []) < 2:
+    if not grouped:
+        return
+
+    sorted_probs = sorted(grouped.keys())
+    if len(sorted_probs) == 1 and len(grouped[sorted_probs[0]]) < 2:
         print("[INFO] Weniger als 2 Laeufe; ueberspringe Cross-Run-Diagramm.")
         return
 
-    batches.sort(key=lambda b: (b.get("config") or {}).get("probability", 0.0))
     fig, ((ax_t, ax_l), (ax_m, ax_n)) = plt.subplots(2, 2, figsize=(10.5, 7.6))
 
-    if len(batches) == 1:
-        runs = batches[0]["runs"]
-        stem = os.path.splitext(os.path.basename(summary_paths[0]))[0]
-        strip_box(ax_t, [("Dwell Time", [r.get("dwell_time_sec") for r in runs], "#fc8d62"), ("MTTR post-fault", [r.get("mttr_post_fault_sec") for r in runs], "#66c2a5")], f"A: Selbstheilungszeiten (N={len(runs)})", "Dauer [s]")
+    if len(sorted_probs) == 1:
+        prob = sorted_probs[0]
+        runs = grouped[prob]
+        target_dir = os.path.join(out_dir, f"p{prob}")
+        os.makedirs(target_dir, exist_ok=True)
+        stem = "cross_run_summary"
+        strip_box(ax_t, [("Dwell Time", [r.get("dwell_time_sec") for r in runs], "#fc8d62"), ("MTTR post-fault", [r.get("mttr_post_fault_sec") for r in runs], "#66c2a5")], f"A: Selbstheilungszeiten (p={prob}%, N={len(runs)})", "Dauer [s]")
         strip_box(ax_l, [("Peak p95", [_peak(r, "reconcile_duration_p95_sec") for r in runs], "#d95f02"), ("Peak Avg", [_peak(r, "reconcile_duration_avg_sec") for r in runs], "#7570b3")], "B: Maximale Reconcile-Latenz je Lauf", "Latenz [s]")
         strip_box(ax_m, [("Controller", [_peak(r, "controller_memory_bytes", 1 / 1048576) for r in runs], "#7570b3"), ("Repo-Server", [_peak(r, "repo_server_memory_bytes", 1 / 1048576) for r in runs], "#377eb8")], "C: Spitzen-RAM je Lauf", "RAM [MiB]")
         strip_box(ax_n, [("Pod Retrans/s", [_peak(r, "pod_tcp_retrans_rate") for r in runs], "#4d4d4d"), ("iptables Drops/s", [_peak(r, "iptables_drop_rate") for r in runs], "#e41a1c")], "D: Netzstörungs-Intensität je Lauf", "Rate [1/s]")
     else:
-        stem = "sweep"
+        target_dir = out_dir
+        stem = "sweep_cross_run_summary"
         palette = ["#1b9e77", "#377eb8", "#ff7f00", "#e41a1c", "#7570b3"]
         t_specs, l_specs, m_specs, n_specs = [], [], [], []
-        for idx, b in enumerate(batches):
-            prob = int(round(((b.get("config") or {}).get("probability", 0.0)) * 100))
-            lbl, col, runs = f"{prob}%", palette[idx % len(palette)], b.get("runs") or []
+        for idx, prob in enumerate(sorted_probs):
+            runs = grouped[prob]
+            lbl, col = f"{prob}%", palette[idx % len(palette)]
             t_specs.append((lbl, [r.get("mttr_post_fault_sec") for r in runs], col))
             l_specs.append((lbl, [_peak(r, "reconcile_duration_p95_sec") for r in runs], col))
             m_specs.append((lbl, [_peak(r, "controller_memory_bytes", 1 / 1048576) for r in runs], col))
@@ -243,10 +284,12 @@ def plot_summary_batches(summary_paths: List[str], out_dir: str) -> None:
         strip_box(ax_n, n_specs, "D: Peak FORWARD-Drops/s nach Paketverlust", "Rate [1/s]")
 
     ax_m.axhline(y=512, color="#d95f02", linestyle=":", linewidth=1.2, label="Controller Limit (512 MiB)")
-    if len(batches) == 1:
+    if len(sorted_probs) == 1:
         ax_m.axhline(y=384, color="#377eb8", linestyle="--", linewidth=1.2, label="Repo-Server Limit (384 MiB)")
+    top_m = max(620.0, ax_m.get_ylim()[1])
+    ax_m.set_ylim(-0.02 * top_m, top_m)
     ax_m.legend(loc="upper right")
-    save_fig(out_dir, f"{stem}_cross_run_summary")
+    save_fig(target_dir, stem)
 
 
 def main() -> None:
@@ -268,18 +311,29 @@ def main() -> None:
 
     csv_file = args.input
     if not csv_file:
-        csvs = sorted(glob.glob(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "*.csv"))))
+        data_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
+        csvs = sorted(glob.glob(os.path.join(data_root, "p*", "run*", "*.csv"))) or sorted(glob.glob(os.path.join(data_root, "*.csv")))
         if not csvs:
             print("[FEHLER] Keine CSV-Dateien gefunden!", file=sys.stderr)
             sys.exit(1)
         csv_file = csvs[-1]
 
     df = pd.read_csv(csv_file, parse_dates=["timestamp"], index_col="timestamp")
-    prefix = os.path.splitext(os.path.basename(csv_file))[0]
-    plot_latency_timeseries(df, out_dir, prefix)
-    plot_resources(df, out_dir, prefix)
-    plot_resilience_timeline(df, out_dir, prefix)
-    print(f"[OK] Diagramme gespeichert in {out_dir}")
+    abs_csv = os.path.abspath(csv_file)
+    run_dir = os.path.basename(os.path.dirname(abs_csv))
+    prob_dir = os.path.basename(os.path.dirname(os.path.dirname(abs_csv)))
+    if re.fullmatch(r"p\d+", prob_dir) and re.fullmatch(r"run\d+", run_dir):
+        plot_dir = os.path.join(out_dir, prob_dir, run_dir)
+        os.makedirs(plot_dir, exist_ok=True)
+        prefix = ""
+    else:
+        plot_dir = out_dir
+        prefix = os.path.splitext(os.path.basename(csv_file))[0] + "_"
+
+    plot_latency_timeseries(df, plot_dir, prefix)
+    plot_resources(df, plot_dir, prefix)
+    plot_resilience_timeline(df, plot_dir, prefix)
+    print(f"[OK] Diagramme gespeichert in {plot_dir}")
 
 
 if __name__ == "__main__":

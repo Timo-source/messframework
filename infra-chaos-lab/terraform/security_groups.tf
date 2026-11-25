@@ -1,11 +1,18 @@
 # Ermittelt dynamisch deine reale öffentliche WAN-IP beim terraform apply
 data "http" "my_public_ip" {
-  url = "https://checkip.amazonaws.com"
+  count = var.override_allowed_cidr == null ? 1 : 0
+  url   = "https://checkip.amazonaws.com"
+
+  retry {
+    attempts     = 3
+    min_delay_ms = 1000
+    max_delay_ms = 5000
+  }
 }
 
 locals {
-  detected_ip     = chomp(data.http.my_public_ip.response_body)
-  detected_subnet = regex("^([0-9]+\\.[0-9]+\\.[0-9]+)", local.detected_ip)[0]
+  detected_ip     = var.override_allowed_cidr == null ? chomp(data.http.my_public_ip[0].response_body) : ""
+  detected_subnet = var.override_allowed_cidr == null ? regex("^([0-9]+\\.[0-9]+\\.[0-9]+)", local.detected_ip)[0] : ""
   allowed_cidr    = var.override_allowed_cidr != null ? var.override_allowed_cidr : "${local.detected_subnet}.0/24"
 }
 

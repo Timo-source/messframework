@@ -4,6 +4,7 @@
 import argparse
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -114,8 +115,9 @@ def main() -> None:
     args = parser.parse_args()
 
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    data_dir = os.path.join(base_dir, "data")
-    os.makedirs(data_dir, exist_ok=True)
+    prob_tag = f"p{int(round(args.probability * 100))}"
+    prob_dir = os.path.join(base_dir, "data", prob_tag)
+    os.makedirs(prob_dir, exist_ok=True)
 
     host = args.host or get_tf_ip(os.path.join(base_dir, "terraform"))
     if not host:
@@ -168,24 +170,34 @@ def main() -> None:
             break
         if state in ("FAILED", "STOPPED"):
             try:
-                scp_transfer(f"ubuntu@{host}:{remote_dir}/runner.log", os.path.join(data_dir, f"runner_{batch_id}.log"), args.ssh_key)
+                scp_transfer(f"ubuntu@{host}:{remote_dir}/runner.log", os.path.join(prob_dir, f"runner_{batch_id}.log"), args.ssh_key)
             except Exception:
                 pass
             print(f"\n[FEHLER] Remote-Laeufer beendet mit Status {state}.", file=sys.stderr)
             sys.exit(1)
         time.sleep(5)
 
-    local_summary = os.path.join(data_dir, f"summary_{batch_id}.json")
+    local_summary = os.path.join(prob_dir, f"summary_{batch_id}.json")
     scp_transfer(f"ubuntu@{host}:{remote_dir}/summary_{batch_id}.json", local_summary, args.ssh_key)
-    scp_transfer(f"ubuntu@{host}:{remote_dir}/runner.log", os.path.join(data_dir, f"runner_{batch_id}.log"), args.ssh_key)
+    scp_transfer(f"ubuntu@{host}:{remote_dir}/runner.log", os.path.join(prob_dir, f"runner_{batch_id}.log"), args.ssh_key)
 
     with open(local_summary, "r", encoding="utf-8") as fh:
         summary = json.load(fh)
 
+    existing_nums = [
+        int(m.group(1))
+        for entry in os.listdir(prob_dir)
+        if (m := re.fullmatch(r"run(\d+)", entry)) and os.path.isdir(os.path.join(prob_dir, entry))
+    ]
+    run_offset = (max(existing_nums) + 1) if existing_nums else 1
+
     csvs: List[str] = []
     for run in summary.get("runs", []):
         if run.get("csv_file"):
-            local_csv = os.path.join(data_dir, run["csv_file"])
+            global_idx = run_offset + int(run["run_index"]) - 1
+            run_dir = os.path.join(prob_dir, f"run{global_idx}")
+            os.makedirs(run_dir, exist_ok=True)
+            local_csv = os.path.join(run_dir, "metrics.csv")
             scp_transfer(f"ubuntu@{host}:{remote_dir}/{run['csv_file']}", local_csv, args.ssh_key)
             csvs.append(local_csv)
 
@@ -195,8 +207,12 @@ def main() -> None:
         plot_script = os.path.join(base_dir, "analysis", "plot-results.py")
         for csv_path in csvs:
             subprocess.run([sys.executable, plot_script, "--input", csv_path], check=True)
-        if len(summary.get("runs", [])) >= 2:
-            subprocess.run([sys.executable, plot_script, "--summary", local_summary], check=True)
+        prob_summaries = sorted(
+            os.path.join(prob_dir, f) for f in os.listdir(prob_dir)
+            if f.startswith("summary_") and f.endswith(".json")
+        )
+        if prob_summaries:
+            subprocess.run([sys.executable, plot_script, "--summaries", *prob_summaries], check=True)
 
     print(f"\n[OK] Fertig: {local_summary}")
 

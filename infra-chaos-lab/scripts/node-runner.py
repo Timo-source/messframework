@@ -133,11 +133,12 @@ def read_repo_server_retrans() -> Optional[Tuple[str, int]]:
 
 
 def read_iptables_drops() -> Optional[int]:
-    res = run_cmd(["iptables", "-L", "FORWARD", "-v", "-n", "-x"], timeout=5)
+    res = run_cmd(["iptables", "-t", "mangle", "-L", "FORWARD", "-v", "-n", "-x"], timeout=5)
     if res is None or res.returncode != 0:
         return None
     lines = [ln for ln in res.stdout.splitlines() if "gitops-chaos" in ln]
-    return sum(int(ln.split()[0]) for ln in lines if ln.split()[0].isdigit()) if lines else None
+    counts = [int(ln.split()[0]) for ln in lines if ln.split() and ln.split()[0].isdigit()]
+    return max(counts) if counts else None
 
 
 def cleanup_iptables() -> None:
@@ -229,7 +230,7 @@ def classify_phase(ts_f: float, fault_start: float, fault_end: float, recovered:
         return "baseline"
     if ts_f <= fault_end:
         return "fault"
-    return "recovery" if (recovered is None or ts_f <= recovered) else "post_recovery"
+    return "recovery" if (recovered is not None and ts_f <= recovered) else "post_recovery"
 
 
 def export_csv(
@@ -258,11 +259,18 @@ def export_csv(
                 if val is not None:
                     overall[m].append(val)
                     by_phase[phase][m].append(val)
-            nearest = min(local_samples, key=lambda s: abs(s["ts"] - ts_f)) if local_samples else None
+            candidates = [
+                s for s in local_samples
+                if (s["ts"] < fault_start) == (ts_f < fault_start)
+                and (s["ts"] <= fault_end) == (ts_f <= fault_end)
+            ]
+            nearest = min(candidates, key=lambda s: abs(s["ts"] - ts_f)) if candidates else None
             valid_local = nearest is not None and abs(nearest["ts"] - ts_f) <= 10.0
             for lm in local_cols:
                 if valid_local:
                     lval = float(nearest[lm])  # type: ignore[index]
+                    if phase != "fault" and lm == "iptables_drop_rate":
+                        lval = 0.0
                     overall[lm].append(lval)
                     by_phase[phase][lm].append(lval)
                     row.append(round(lval, 6))
@@ -298,9 +306,10 @@ class KernelSampler:
         self.prev_drops = read_iptables_drops()
         self.max_drops = self.prev_drops or 0
         self.last_degraded = 0.0
+        self.drift_pending: bool = False
         self.samples: List[Dict[str, Any]] = []
 
-    def sample(self) -> Tuple[str, str, str, Optional[str], Optional[str], bool, Dict[str, Any]]:
+    def sample(self) -> Tuple[str, str, str, Optional[str], Optional[str], bool, bool, Dict[str, Any]]:
         now = time.time()
         dt = max(0.5, now - self.prev_ts)
         retrans, retrans_rate = read_repo_server_retrans(), 0.0
@@ -319,11 +328,16 @@ class KernelSampler:
         self.prev_drops, self.prev_ts = curr_drops, now
 
         s_stat, h_stat, conds, rec_at, cond_ts, ok = get_app_status(self.app_name)
+        is_fully_healthy = (self.last_degraded == 0.0)
         if ok:
-            self.last_degraded = 0.0 if (s_stat == "Synced" and h_stat == "Healthy" and not conds) else 1.0
+            if self.drift_pending and s_stat == "Synced" and h_stat == "Healthy" and not conds:
+                if get_workload_label() == "baseline-reconciliation":
+                    self.drift_pending = False
+            is_fully_healthy = (s_stat == "Synced" and h_stat == "Healthy" and not conds and not self.drift_pending)
+            self.last_degraded = 0.0 if is_fully_healthy else 1.0
         rec = {"ts": now, "pod_tcp_retrans_rate": round(retrans_rate, 4), "iptables_drop_rate": round(drop_rate, 4), "app_degraded_state": self.last_degraded}
         self.samples.append(rec)
-        return s_stat, h_stat, conds, rec_at, cond_ts, ok, rec
+        return s_stat, h_stat, conds, rec_at, cond_ts, ok, is_fully_healthy, rec
 
 
 def run_interval_loop(duration: float, interval: float, sampler: KernelSampler) -> None:
@@ -351,6 +365,7 @@ def execute_single_run(run_idx: int, total_runs: int, args: argparse.Namespace, 
     baseline_start_ts = time.time()
     print(f"[Lauf {run_idx}] Baseline ({args.baseline_wait}s)...", flush=True)
     run_interval_loop(args.baseline_wait, args.poll_interval, sampler)
+    sampler.sample()
 
     chaos_log = os.path.join(args.out_dir, f"chaos_run{run_idx}.log")
     fault_start_ts = time.time()
@@ -375,6 +390,8 @@ def execute_single_run(run_idx: int, total_runs: int, args: argparse.Namespace, 
     waiter.start()
 
     first_non_normal_ts = fault_detected_ts = fault_end_ts = recovered_ts = None
+    drift_injected_ts: Optional[float] = None
+    stable_recovered_ts: Optional[float] = None
     first_fault_state = first_fault_cond_ts = recovered_reconciled_at = None
     transitions: List[Dict[str, Any]] = []
     last_key: Optional[Tuple[str, str, str]] = None
@@ -388,6 +405,9 @@ def execute_single_run(run_idx: int, total_runs: int, args: argparse.Namespace, 
         time.sleep(1.0)
         if not args.no_drift:
             drift_applied = set_workload_label("drifted")
+            if drift_applied:
+                drift_injected_ts = time.time()
+                sampler.drift_pending = True
             print(f"[Lauf {run_idx}] Drift injiziert (experiment=drifted, ok={drift_applied})", flush=True)
 
         while (time.time() - fault_start_ts) < (args.duration + args.post_fault_timeout):
@@ -397,7 +417,7 @@ def execute_single_run(run_idx: int, total_runs: int, args: argparse.Namespace, 
                 fault_end_ts = fault_end_holder["ts"] or now
                 print(f"[Lauf {run_idx}] Stoerungsfenster beendet ({fault_end_ts - fault_start_ts:.2f}s).", flush=True)
 
-            s_stat, h_stat, conds, rec_at, cond_ts, ok, rec = sampler.sample()
+            s_stat, h_stat, conds, rec_at, cond_ts, ok, is_fully_healthy, rec = sampler.sample()
             if not ok:
                 print(f"  [+{elapsed:05.1f}s] [WARN] kubectl fehlgeschlagen ({conds}), ignoriere Tick.", flush=True)
             else:
@@ -405,27 +425,40 @@ def execute_single_run(run_idx: int, total_runs: int, args: argparse.Namespace, 
                     last_key = (s_stat, h_stat, conds)
                     transitions.append({"elapsed_sec": round(elapsed, 2), "timestamp_utc": utc_iso(now), "sync": s_stat, "health": h_stat, "conditions": conds, "reconciled_at": rec_at})
 
-                is_normal = (s_stat == "Synced" and h_stat == "Healthy" and not conds)
-                if not is_normal and first_non_normal_ts is None:
-                    first_non_normal_ts = now
                 if ("Error" in conds or s_stat == "Unknown") and fault_detected_ts is None:
                     fault_detected_ts = now
                     first_fault_state = {"sync": s_stat, "health": h_stat, "conditions": conds}
                     first_fault_cond_ts = cond_ts
                     print(f"[Lauf {run_idx}] [FAULT] Netzfehler: Sync={s_stat} Cond={conds or 'None'}", flush=True)
 
+                if not is_fully_healthy:
+                    if first_non_normal_ts is None:
+                        first_non_normal_ts = drift_injected_ts if (drift_applied and drift_injected_ts is not None and s_stat == "Synced" and not conds) else now
+                    stable_recovered_ts = None
+                    recovered_reconciled_at = None
+                else:
+                    if (drift_applied or first_non_normal_ts is not None or fault_detected_ts is not None) and stable_recovered_ts is None:
+                        stable_recovered_ts = now
+                        recovered_reconciled_at = rec_at
+                        if first_non_normal_ts is None and drift_injected_ts is not None:
+                            first_non_normal_ts = drift_injected_ts
+
                 print(f"  [+{elapsed:05.1f}s] Sync={s_stat:<9} Health={h_stat:<8} Retrans={rec['pod_tcp_retrans_rate']:.1f}/s Drops={rec['iptables_drop_rate']:.1f}/s" + (f" [{conds}]" if conds else ""), flush=True)
 
                 if fault_end_ts is not None:
                     lbl_ok = (not drift_applied) or (get_workload_label() == "baseline-reconciliation")
-                    if is_control and is_normal and lbl_ok:
-                        recovered_ts, recovered_reconciled_at = now, rec_at
+                    sampler.drift_pending = not lbl_ok
+                    if not lbl_ok:
+                        is_fully_healthy = False
+                        stable_recovered_ts = None
+                    if is_fully_healthy and lbl_ok:
+                        recovered_ts = stable_recovered_ts or now
+                        if recovered_reconciled_at is None:
+                            recovered_reconciled_at = rec_at
+                        if not is_control:
+                            print(f"[Lauf {run_idx}] [OK] Konvergiert (Synced & Healthy, Label bereinigt).", flush=True)
                         break
-                    if not is_control and (fault_detected_ts or first_non_normal_ts) is not None and is_normal and lbl_ok:
-                        recovered_ts, recovered_reconciled_at = now, rec_at
-                        print(f"[Lauf {run_idx}] [OK] Konvergiert (Synced & Healthy, Label bereinigt).", flush=True)
-                        break
-                    if not is_control and (fault_detected_ts or first_non_normal_ts) is None and (now - fault_end_ts) >= 45.0:
+                    if not is_control and not drift_applied and (fault_detected_ts or first_non_normal_ts) is None and (now - fault_end_ts) >= 45.0:
                         print(f"[Lauf {run_idx}] [HINWEIS] Keine Degradierung beobachtet; beende Beobachtung.", flush=True)
                         break
 
@@ -455,6 +488,9 @@ def execute_single_run(run_idx: int, total_runs: int, args: argparse.Namespace, 
         if fault_end_ts is None:
             fault_end_ts = fault_end_holder["ts"] or time.time()
 
+    obs_end_ts = time.time()
+    sampler.sample()
+
     final_drops = 0
     if os.path.exists(chaos_log):
         with open(chaos_log, "r", encoding="utf-8", errors="ignore") as fh:
@@ -472,15 +508,19 @@ def execute_single_run(run_idx: int, total_runs: int, args: argparse.Namespace, 
     d_in, d_out = swap_in_end - swap_in_start, swap_out_end - swap_out_start
     swap_pure = (d_in == 0 and d_out == 0)
 
-    dwell_sec = round(recovered_ts - fault_detected_ts, 3) if (not is_control and fault_detected_ts and recovered_ts) else None
-    mttr_sec = round(max(0.0, recovered_ts - fault_end_ts), 3) if (not is_control and fault_detected_ts and recovered_ts) else None
+    degraded_start = fault_detected_ts or first_non_normal_ts
+    dwell_sec = round(max(0.0, recovered_ts - degraded_start), 3) if (not is_control and degraded_start is not None and recovered_ts is not None) else None
+    mttr_sec = round(max(0.0, recovered_ts - fault_end_ts), 3) if (not is_control and recovered_ts is not None) else None
+    recovery_end_ts = (recovered_ts if recovered_ts is not None else obs_end_ts) if not is_control else fault_end_ts
 
     csv_name = f"metrics_{batch_id}_run{run_idx}.csv"
     sample_count, stats, phase_stats = export_csv(
         prom_url, baseline_start_ts, post_wait_end_ts, fault_start_ts, fault_end_ts,
-        recovered_ts if not is_control else fault_end_ts, sampler.samples, os.path.join(args.out_dir, csv_name),
+        recovery_end_ts, sampler.samples, os.path.join(args.out_dir, csv_name),
     )
-    print(f"[Lauf {run_idx}] Dwell={dwell_sec}s | MTTR_post={mttr_sec}s | Drops={total_drops} | Swap={'PASS' if swap_pure else f'FAIL({d_in}/{d_out})'}", flush=True)
+    dwell_str = f"{dwell_sec}s" if dwell_sec is not None else "-"
+    mttr_str = f"{mttr_sec}s" if mttr_sec is not None else "-"
+    print(f"[Lauf {run_idx}] Dwell={dwell_str} | MTTR_post={mttr_str} | Drops={total_drops} | Swap={'PASS' if swap_pure else f'FAIL({d_in}/{d_out})'}", flush=True)
 
     ts_map = {
         "baseline_start": baseline_start_ts, "fault_start": fault_start_ts,
@@ -507,7 +547,7 @@ def build_aggregate(runs: List[Dict[str, Any]]) -> Dict[str, Any]:
 
     return {
         "runs_total": len(runs),
-        "runs_recovered": sum(1 for r in runs if r["mttr_post_fault_sec"] is not None),
+        "runs_recovered": sum(1 for r in runs if (r.get("timestamps_unix") or {}).get("recovered") is not None),
         "runs_swap_pure": sum(1 for r in runs if (r.get("swap_purity") or {}).get("passed")),
         "dwell_time_sec": compute_stats([r["dwell_time_sec"] for r in runs if r["dwell_time_sec"] is not None]),
         "mttr_post_fault_sec": compute_stats([r["mttr_post_fault_sec"] for r in runs if r["mttr_post_fault_sec"] is not None]),
@@ -536,7 +576,7 @@ def main() -> None:
     parser.add_argument("--post-wait", type=int, default=90)
     parser.add_argument("--cooldown", type=int, default=60)
     parser.add_argument("--poll-interval", type=float, default=5.0)
-    parser.add_argument("--post-fault-timeout", type=int, default=240)
+    parser.add_argument("--post-fault-timeout", type=int, default=360)
     parser.add_argument("--app-name", default="baseline-workload-app")
     parser.add_argument("--prometheus-port", type=int, default=30090)
     parser.add_argument("--no-drift", action="store_true")

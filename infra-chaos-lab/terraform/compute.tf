@@ -20,7 +20,7 @@ resource "aws_key_pair" "lab_key" {
   public_key = file(pathexpand(var.ssh_public_key_path))
 }
 
-# EC2 Single-Node K3s Instanz (t3.medium: 2 vCPUs, 4 GB RAM)
+# EC2 Single-Node K3s Instanz (c7i-flex.large: 2 vCPUs, 4 GB RAM)
 resource "aws_instance" "k3s_node" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type

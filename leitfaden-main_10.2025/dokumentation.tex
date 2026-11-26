@@ -36,7 +36,7 @@
 \usepackage{tabularx} % Erweiterte Tabellenfunktionen, insbesondere für Spaltenbreiten.
 
 % Literaturverwaltung
-\usepackage[notes,backend=biber,autocite=footnote,ibidtracker=false]{biblatex-chicago} % Für Literaturverzeichnisse nach Chicago-Stil (Notes and Bibliography).
+\usepackage[notes,backend=biber,autocite=footnote,ibidtracker=false,dashed=false]{biblatex-chicago} % Für Literaturverzeichnisse nach Chicago-Stil (Notes and Bibliography).
 
 % Zitate
 \usepackage{csquotes} % Korrekte Darstellung von Zitaten, z. B. Anführungszeichen.
@@ -246,7 +246,6 @@
 % Glossar und Abkürzungen
 \makenoidxglossaries
 \input{zusatz/abkuerzungen}
-\glsaddall
 % Trenner ändern - Bindestrich zwischen Abkürzung und Erklärung
 \renewcommand*{\glsnamefont}[1]{#1 --}
 
@@ -284,9 +283,9 @@
 
 % Setze PDF-Metadaten
 \hypersetup{
-  pdftitle={Konzeption und Implementierung eines automatisierten Chaos-Engineering-Messframeworks zur quantitativen Evaluierung der Resilienz und Selbstheilungskonvergenz deklarativer GitOps-Control-Planes unter probabilistischer Netzwerkdegradation},
+  pdftitle={Empirische Untersuchung der Resilienz und Konvergenzlatenz deklarativer GitOps-Control-Planes unter transienten Netzwerkstörungen},
   pdfauthor={Mustermensch},
-  pdfsubject={Bachelorarbeit / Projektarbeit Wirtschaftsinformatik},
+  pdfsubject={Bachelor-Thesis Informatik (B.Sc.)},
 }
 
 \begin{document}
@@ -321,6 +320,7 @@
     % Inhaltsverzeichnis
     \phantomsection
     \tableofcontents
+    \markboth{}{}
     \newpage
 
     % Optionale Vorbemerkung
@@ -350,14 +350,16 @@
     \newpage
     
     % Abbildungsverzeichnis
-    %\phantomsection
-    %\addcontentsline{toc}{chapter}{Abbildungsverzeichnis}
-    %\listoffigures
-    %\newpage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{Abbildungsverzeichnis}
+    \markboth{Abbildungsverzeichnis}{}
+    \listoffigures
+    \newpage
     
     % Tabellenverzeichnis
     \phantomsection
     \addcontentsline{toc}{chapter}{Tabellenverzeichnis}
+    \markboth{Tabellenverzeichnis}{}
     \listoftables
     \newpage
     
@@ -400,11 +402,13 @@
 
     % Eigenständigkeitserklärung
     \newpage
+    \markboth{Eigenständigkeitserklärung}{}
     \input{zusatz/eigenstaendigkeitserklaerung}
     
     % Lebenslauf (nur für Abschlussarbeiten)
-    %\newpage
-    %\input{zusatz/lebenslauf}
+    \newpage
+    \markboth{Lebenslauf}{}
+    \input{zusatz/lebenslauf}
 
 \end{onehalfspace}
 \end{document}

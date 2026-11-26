@@ -59,7 +59,7 @@
   location  = {Bamberg, Germany},
   year      = {2021},
   pages     = {65--73},
-  url       = {https://ceur-ws.org/Vol-2839/paper7.pdf},
+  url       = {https://ceur-ws.org/Vol-2839/paper8.pdf},
   urldate   = {2026-11-24}
 }
 
@@ -103,7 +103,7 @@
   location  = {Carlsbad, CA},
   year      = {2022},
   pages     = {143--159},
-  url       = {https://www.usenix.org/conference/osdi22/presentation/sun-xudong},
+  url       = {https://www.usenix.org/conference/osdi22/presentation/sun},
   urldate   = {2026-11-24}
 }
 
@@ -150,11 +150,56 @@
 
 @online{argocd_architecture_2026,
   author       = {{Argo Project}},
-  title        = {{Argo CD} -- Declarative {GitOps} {CD} for {Kubernetes}: Operator Manual and Architectural Overview},
+  title        = {{Argo CD} Operator Manual: Architectural Overview},
   organization = {Cloud Native Computing Foundation (CNCF)},
   year         = {2026},
   url          = {https://argo-cd.readthedocs.io/en/stable/operator-manual/architecture/},
   urldate      = {2026-11-05}
+}
+
+@online{argocd_reconcile_2026,
+  author       = {{Argo Project}},
+  title        = {{Argo CD} Operator Manual: Reconcile Optimization},
+  organization = {Cloud Native Computing Foundation (CNCF)},
+  year         = {2026},
+  url          = {https://argo-cd.readthedocs.io/en/stable/operator-manual/reconcile/},
+  urldate      = {2026-11-24}
+}
+
+@online{argocd_autosync_2026,
+  author       = {{Argo Project}},
+  title        = {{Argo CD} User Guide: Automated Sync Policy},
+  organization = {Cloud Native Computing Foundation (CNCF)},
+  year         = {2026},
+  url          = {https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/},
+  urldate      = {2026-11-24}
+}
+
+@online{argocd_metrics_2026,
+  author       = {{Argo Project}},
+  title        = {{Argo CD} Operator Manual: Metrics},
+  organization = {Cloud Native Computing Foundation (CNCF)},
+  year         = {2026},
+  url          = {https://argo-cd.readthedocs.io/en/stable/operator-manual/metrics/},
+  urldate      = {2026-11-24}
+}
+
+@online{argo_helm_2026,
+  author       = {{Argo Project}},
+  title        = {Argo {Helm} Charts ({argo-cd})},
+  organization = {GitHub / CNCF},
+  year         = {2026},
+  url          = {https://github.com/argoproj/argo-helm},
+  urldate      = {2026-11-24}
+}
+
+@online{prometheus_helm_2026,
+  author       = {{Prometheus Community}},
+  title        = {Prometheus Community {Kubernetes} {Helm} Charts},
+  organization = {GitHub / CNCF},
+  year         = {2026},
+  url          = {https://github.com/prometheus-community/helm-charts},
+  urldate      = {2026-11-24}
 }
 
 @book{gregg_systems_2020,
@@ -218,13 +263,49 @@
   doi         = {10.17487/RFC9293}
 }
 
-@online{netfilter_iptables_2026,
-  author       = {{Netfilter Project}},
-  title        = {iptables(8) -- Administration tool for {IPv4} packet filtering and {NAT}},
-  organization = {The Linux Kernel Archives},
+@online{iptables_man_2026,
+  author       = {{Linux man-pages project}},
+  title        = {iptables(8) -- Administration tool for {IPv4}/{IPv6} packet filtering and {NAT}},
+  organization = {man7.org},
   year         = {2026},
-  url          = {https://www.netfilter.org/},
-  urldate      = {2026-11-05}
+  url          = {https://man7.org/linux/man-pages/man8/iptables.8.html},
+  urldate      = {2026-11-24}
+}
+
+@online{iptables_ext_2026,
+  author       = {{Linux man-pages project}},
+  title        = {iptables-extensions(8) -- List of extensions in the standard iptables distribution},
+  organization = {man7.org},
+  year         = {2026},
+  url          = {https://man7.org/linux/man-pages/man8/iptables-extensions.8.html},
+  urldate      = {2026-11-24}
+}
+
+@online{tc_netem_2026,
+  author       = {{Linux man-pages project}},
+  title        = {tc-netem(8) -- Network Emulator},
+  organization = {man7.org},
+  year         = {2026},
+  url          = {https://man7.org/linux/man-pages/man8/tc-netem.8.html},
+  urldate      = {2026-11-24}
+}
+
+@online{chaos_mesh_2026,
+  author       = {{Chaos Mesh Authors}},
+  title        = {Chaos Mesh Documentation},
+  organization = {Cloud Native Computing Foundation (CNCF)},
+  year         = {2026},
+  url          = {https://chaos-mesh.org/docs/},
+  urldate      = {2026-11-24}
+}
+
+@online{litmuschaos_2026,
+  author       = {{LitmusChaos Authors}},
+  title        = {LitmusChaos Documentation},
+  organization = {Cloud Native Computing Foundation (CNCF)},
+  year         = {2026},
+  url          = {https://docs.litmuschaos.io/},
+  urldate      = {2026-11-24}
 }
 
 @online{kernel_vmstat_2026,
@@ -255,30 +336,30 @@
   year      = {2022}
 }
 
-@online{aws_ec2_2026,
+@online{aws_userdata_2026,
   author       = {{Amazon Web Services}},
-  title        = {Amazon {EC2} User Guide for {Linux} Instances: Instance Types, Instance Metadata Service ({IMDSv2}), and User Data},
+  title        = {Amazon {EC2} User Guide: Run commands when you launch an {EC2} instance with user data input},
   organization = {Amazon Web Services, Inc.},
   year         = {2026},
-  url          = {https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html},
-  urldate      = {2026-11-05}
+  url          = {https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html},
+  urldate      = {2026-11-24}
+}
+
+@online{aws_imds_2026,
+  author       = {{Amazon Web Services}},
+  title        = {Amazon {EC2} User Guide: Configure the Instance Metadata Service ({IMDS})},
+  organization = {Amazon Web Services, Inc.},
+  year         = {2026},
+  url          = {https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html},
+  urldate      = {2026-11-24}
 }
 
 @online{cloudinit_docs_2026,
   author       = {{Canonical Ltd.}},
-  title        = {cloud-init Documentation: Cloud Config Modules and User-Data Formats},
+  title        = {cloud-init Documentation: User-Data Formats and Modules},
   organization = {Canonical / Ubuntu},
   year         = {2026},
   url          = {https://cloudinit.readthedocs.io/en/latest/},
-  urldate      = {2026-11-05}
-}
-
-@online{helm_docs_2026,
-  author       = {{Helm Project}},
-  title        = {Helm Documentation: Architecture, Charts, and Values Files},
-  organization = {Cloud Native Computing Foundation (CNCF)},
-  year         = {2026},
-  url          = {https://helm.sh/docs/},
   urldate      = {2026-11-05}
 }
 
@@ -291,11 +372,19 @@
   year      = {2018}
 }
 
-@online{prometheus_docs_2026,
+@online{prometheus_histograms_2026,
   author       = {{Prometheus Authors}},
-  title        = {Prometheus Documentation: Querying {Prometheus} ({PromQL}) and Histograms and Summaries},
+  title        = {Prometheus Documentation: Histograms and Summaries},
   organization = {Cloud Native Computing Foundation (CNCF)},
   year         = {2026},
-  url          = {https://prometheus.io/docs/prometheus/latest/querying/basics/},
-  urldate      = {2026-11-05}
+  url          = {https://prometheus.io/docs/practices/histograms/},
+  urldate      = {2026-11-24}
+}
+
+@online{messframework_repo_2026,
+  author       = {{Infra-Chaos-Lab}},
+  title        = {Automatisierte Messumgebung und Skripte ({GitHub}-Repository, Commit {5e4a369})},
+  year         = {2026},
+  url          = {https://github.com/Timo-source/messframework/tree/5e4a369},
+  urldate      = {2026-11-25}
 }

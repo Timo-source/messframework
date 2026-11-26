@@ -33,12 +33,39 @@ def get_tf_ip(tf_dir: str) -> str:
     return ""
 
 
-def ssh_run(host: str, key: str, cmd: str, check: bool = True, timeout: int = 20) -> subprocess.CompletedProcess:
-    return subprocess.run(["ssh", *SSH_OPTS, "-i", key, f"ubuntu@{host}", cmd], capture_output=True, text=True, check=check, timeout=timeout)
+def ssh_run(host: str, key: str, cmd: str, check: bool = True, timeout: int = 30, retries: int = 5) -> subprocess.CompletedProcess:
+    last_exc: Optional[Exception] = None
+    for attempt in range(1, retries + 1):
+        try:
+            res = subprocess.run(["ssh", *SSH_OPTS, "-i", key, f"ubuntu@{host}", cmd], capture_output=True, text=True, check=False, timeout=timeout)
+            if res.returncode == 255 and attempt < retries:
+                time.sleep(5)
+                continue
+            if check and res.returncode != 0:
+                raise subprocess.CalledProcessError(res.returncode, res.args, output=res.stdout, stderr=res.stderr)
+            return res
+        except subprocess.TimeoutExpired as exc:
+            last_exc = exc
+            if attempt < retries:
+                print(f"[WARN] SSH-Timeout (Versuch {attempt}/{retries}) – wiederhole in 5s...", flush=True)
+                time.sleep(5)
+    assert last_exc is not None
+    raise last_exc
 
 
-def scp_transfer(src: str, dst: str, key: str, timeout: int = 60) -> None:
-    subprocess.run(["scp", *SSH_OPTS, "-i", key, src, dst], check=True, timeout=timeout)
+def scp_transfer(src: str, dst: str, key: str, timeout: int = 60, retries: int = 5) -> None:
+    last_exc: Optional[Exception] = None
+    for attempt in range(1, retries + 1):
+        try:
+            subprocess.run(["scp", *SSH_OPTS, "-i", key, src, dst], check=True, timeout=timeout)
+            return
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as exc:
+            last_exc = exc
+            if attempt < retries:
+                print(f"[WARN] SCP fehlgeschlagen (Versuch {attempt}/{retries}) – wiederhole in 5s...", flush=True)
+                time.sleep(5)
+    assert last_exc is not None
+    raise last_exc
 
 
 def poll_remote(host: str, key: str, remote_dir: str, offset: int, pid: Optional[int]) -> Tuple[str, int, str, bool]:
@@ -54,7 +81,7 @@ def poll_remote(host: str, key: str, remote_dir: str, offset: int, pid: Optional
         f"if [ \"$SIZE\" -ge {offset} ]; then tail -c +{offset} \"$LOG\" 2>/dev/null || true; fi"
     )
     try:
-        res = ssh_run(host, key, script, check=False, timeout=15)
+        res = ssh_run(host, key, script, check=False, timeout=15, retries=1)
         lines = res.stdout.splitlines(keepends=True)
         if res.returncode == 255 or not lines or not lines[0].startswith("__STATE__:"):
             return "NET_ERR", offset, "", False
@@ -109,6 +136,7 @@ def main() -> None:
     parser.add_argument("--baseline-wait", type=int, default=30)
     parser.add_argument("--post-wait", type=int, default=90)
     parser.add_argument("--cooldown", type=int, default=60)
+    parser.add_argument("--cooldown-jitter", type=int, default=90)
     parser.add_argument("--no-drift", action="store_true")
     parser.add_argument("--attach", default=None)
     parser.add_argument("--skip-plots", action="store_true")
@@ -138,7 +166,7 @@ def main() -> None:
         runner_args = (
             f"--batch-id {shlex.quote(batch_id)} --out-dir {shlex.quote(remote_dir)} "
             f"--runs {args.runs} --duration {args.duration} --probability {args.probability:.4f} "
-            f"--baseline-wait {args.baseline_wait} --post-wait {args.post_wait} --cooldown {args.cooldown}"
+            f"--baseline-wait {args.baseline_wait} --post-wait {args.post_wait} --cooldown {args.cooldown} --cooldown-jitter {args.cooldown_jitter}"
             + (" --no-drift" if args.no_drift else "")
         )
         inner = f"nohup python3 -u /home/ubuntu/node-runner.py {runner_args} > {shlex.quote(remote_dir + '/runner.log')} 2>&1 < /dev/null & echo $!"

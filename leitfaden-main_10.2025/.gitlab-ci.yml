@@ -1,0 +1,42 @@
+# Use a Docker image with full TeXLive distribution (includes LuaLaTeX and latexmk)
+image: texlive/texlive:latest
+
+# Cache the TeXLive installation
+cache:
+  paths:
+    - /usr/local/texlive
+
+stages:
+  - build
+
+build_latex:
+  stage: build
+  before_script:
+    - echo "Starting LaTeX document compilation"
+    # Install any additional required packages
+    - tlmgr option repository https://mirror.ctan.org/systems/texlive/tlnet
+    - tlmgr update --self
+    - tlmgr install latexmk fontspec
+    # Install Liberation Sans font as an alternative to Arial
+    - apt-get update && apt-get install -y fonts-liberation
+    - fc-cache -f -v
+  script:
+    # Modify the LaTeX files to use Liberation Sans instead of Arial
+    - sed -i 's/\\setmainfont{Arial}/\\setmainfont{Liberation Sans}/g' dokumentation.tex
+    
+    # Compile dokumentation.tex
+    - latexmk -lualatex -synctex=1 -interaction=nonstopmode -file-line-error -f -shell-escape dokumentation.tex
+    
+  after_script:
+    - echo "Cleaning up auxiliary files"
+    - latexmk -c
+    - rm -f *.synctex.gz
+  artifacts:
+    paths:
+      - "*.pdf"
+    expire_in: 1 month
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  tags:
+    - docker

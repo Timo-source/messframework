@@ -1,0 +1,169 @@
+\chapter{Konzeption und Implementierung des automatisierten Messframeworks}
+\label{chap:konzeption-implementierung}
+
+Dieses Kapitel beschreibt Architektur und Implementierung des entwickelten Messframeworks (\textit{Infra-Chaos-Lab}). Erläutert werden die deklarative Bereitstellung der ephemeren Testumgebung auf \gl{aws} \gl{ec2}, die Kernel-seitige Fehlerinjektion via \texttt{iptables}, die hochauflösende Instrumentierung ohne blinde Flecken sowie die autarke On-Node-Versuchsausführung inklusive Kontrolle der Swap-Reinheit.
+
+\section{Architektur und deklarative Bereitstellung der ephemeren Testumgebung}
+\label{sec:architektur-bereitstellung-testumgebung}
+
+Um Messreihen frei von Konfigurationsrückständen, fragmentierten Datenbankzuständen oder verwaisten Netzwerkregeln durchzuführen, folgt das Messframework dem Prinzip ephemerer Testumgebungen.\autocite{morris_iac_2020,brikman_terraform_2022} Die Infrastruktur wird für jede Testreihe per \gl{iac} neu erzeugt, mit fest gepinnten Softwareversionen provisioniert und nach Datenerhebung vollständig abgebaut.
+
+\subsection{Cloud-Infrastruktur, Netzwerktopologie und Cloud-Init-Injektion}
+\label{subsec:cloud-infrastruktur-cloud-init}
+
+Terraform stellt in der \gl{aws}-Region \texttt{eu-central-1} eine isolierte \gl{vpc} (\texttt{10.0.0.0/16}) mit öffentlichem Subnetz (\texttt{10.0.1.0/24}) und Internet-Gateway bereit (\texttt{network.tf}).\autocite{brikman_terraform_2022,aws_ec2_2026} Zur Begrenzung externer Störeinflüsse ermittelt \texttt{security\_groups.tf} beim \texttt{terraform apply} über \texttt{checkip.amazonaws.com} die öffentliche \gl{wan}-IP des Versuchsleiters und beschränkt alle eingehenden Regeln auf das zugehörige \texttt{/24}-Subnetz (Ports \texttt{22}, \texttt{6443}, \texttt{80}, \texttt{443} und NodePort-Bereich \texttt{30000}--\texttt{32767}). Ausgehender Verkehr (\textit{Egress}) bleibt offen, damit Paketquellen, Container-Images und GitHub über Port \texttt{443} erreichbar sind.\autocite{aws_ec2_2026}
+
+Als Rechenknoten (\texttt{compute.tf}) dient eine \gl{ec2}-Instanz vom Typ \texttt{t3.medium} (2~\gl{vcpu}s, 4~GiB physischer \gl{ram}) mit verschlüsseltem 30-GB-\texttt{gp3}-Root-Volume und Ubuntu 24.04 LTS (\textit{Noble Numbat}).\autocite{aws_ec2_2026,cloudinit_docs_2026} Da \gl{aws} das User-Data-Feld auf 16~KiB begrenzt, komprimiert \texttt{templatefile()} die Helm-Values für ArgoCD und Prometheus, das Baseline-Applikationsmanifest sowie das Bootstrap-Skript per \texttt{base64gzip()}. Cloud-Init entpackt diese Dateien unter \texttt{/opt/} bzw.\ \texttt{/usr/local/bin/} und startet den Bootstrap automatisch via \texttt{runcmd}. Über \texttt{user\_data\_replace\_on\_change = true} erzwingt jede Konfigurationsänderung eine frische Instanz.\autocite{brikman_terraform_2022,cloudinit_docs_2026}
+
+\subsection{Automatisierter Cluster-Bootstrap und Ressourcenallokation}
+\label{subsec:cluster-bootstrap-ressourcenallokation}
+
+Das Skript \texttt{bootstrap-cluster.sh} richtet das System deterministisch mit explizit gepinnten Versionen ein: Zunächst erzeugt es ein 4-GiB-Swapfile (\texttt{/swapfile}), um \gl{oom}-Abbrüche während der parallelen Image-Entpackung im Bootstrap zu verhindern, setzt jedoch \texttt{vm.swappiness=1} (\texttt{/etc/sysctl.d/99-swappiness.conf}), damit der Kernel im späteren Experimentbetrieb keinen Speicher proaktiv auslagert.\autocite{gregg_systems_2020,kernel_vmstat_2026} Danach bezieht das Skript die öffentliche IPv4-Adresse über \gl{imds} (\texttt{--tls-san}) und installiert K3s in der gepinnten Version \texttt{v1.37.2+k3s1} ohne Traefik und Metrics-Server (\texttt{--disable traefik --disable metrics-server --kubelet-arg fail-swap-on=false}).\autocite{k3s_architecture_2026,aws_ec2_2026}
+
+Nach der Installation von Helm~v3 werden die Namespaces \texttt{argocd}, \texttt{monitoring} und \texttt{workloads} priorisiert bestückt:\autocite{burns_kubernetes_2022,helm_docs_2026}
+
+\begin{enumerate}
+\item \textbf{ArgoCD Control Plane (Priorität 1):} Über das Chart \texttt{argo/argo-cd} (Chart-Version \texttt{10.18.2}, ArgoCD~\texttt{v3.6.2}) werden ausschließlich die Kernkomponenten ausgerollt; \texttt{dex} und \texttt{notifications} sind deaktiviert sowie \texttt{applicationSet} auf null Replicas skaliert.\autocite{argocd_architecture_2026} Application Controller (Port \texttt{8082}) und Repo-Server (Port \texttt{8084}) exponieren ihre Prometheus-Endpunkte über Pod-Annotationen.
+\item \textbf{Schlanker Monitoring-Stack (Priorität 2):} Über \texttt{prometheus-community/\allowbreak{}prometheus} (Chart-Version \texttt{29.48.0}, Prometheus~\texttt{v3.16.0}) läuft ein einzelner Prometheus-Server samt \texttt{prometheus-node-exporter} und \texttt{kube-state-metrics}; auf Alertmanager, Pushgateway und ein separates Grafana-Deployment wird zur Minimierung des Observer-Overheads verzichtet.\autocite{brazil_prometheus_2018,helm_docs_2026}
+\item \textbf{Deklarative Baseline-Applikation (Priorität 3):} Nach Registrierung der \gl{crd} \texttt{applications.argoproj.io} appliziert das Skript \texttt{application-baseline.yaml} (\texttt{baseline-workload-app}). Diese Kustomize-Applikation betreibt ein \texttt{nginx:1.30.7-alpine}-Deployment mit einem \texttt{ClusterIP}-Service im Namespace \texttt{workloads} und aktiviert \texttt{selfHeal: true}, \texttt{prune: true} sowie den Retry-Backoff aus Gleichung~\ref{eq:exponential-backoff}.\autocite{argocd_architecture_2026,kubernetes_kustomize_2026}
+\end{enumerate}
+
+Tabelle~\ref{tab:ressourcenallokation-komponenten} dokumentiert die \texttt{requests}- und \texttt{limits}-Allokation aller verwalteten Container auf dem \texttt{t3.medium}-Knoten.\autocite{burns_borg_2016,burns_kubernetes_2022}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.5cm}|>{\raggedright\arraybackslash}p{1.9cm}|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}X}
+    \textbf{Komponente} & \textbf{Namespace} & \textbf{Requests (\gl{cpu}/\gl{ram})} & \textbf{Limits (\gl{cpu}/\gl{ram})} & \textbf{Exponierte Ports und Funktion} \\
+    \specialrule{1.5pt}{0pt}{0pt}
+    \texttt{argocd-application-\newline controller} & \texttt{argocd} & \texttt{100m} / \texttt{256Mi} & \texttt{500m} / \texttt{512Mi} & Port \texttt{8082} (Metrics); zentrales \gl{sut} und \gl{oom}-Schwellenwert \\
+    \hline
+    \texttt{argocd-repo-server} & \texttt{argocd} & \texttt{50m} / \texttt{128Mi} & \texttt{300m} / \texttt{384Mi} & Port \texttt{8084} (Metrics); Git-Abruf (\gl{https}) und Kustomize-Build \\
+    \hline
+    \texttt{argocd-server} & \texttt{argocd} & \texttt{50m} / \texttt{128Mi} & \texttt{250m} / \texttt{256Mi} & NodePort \texttt{30080} (\gl{http}/\gl{grpc}); Web-UI und \gl{api}-Endpunkt \\
+    \hline
+    \texttt{argocd-redis} & \texttt{argocd} & \texttt{20m} / \texttt{64Mi} & \texttt{100m} / \texttt{128Mi} & In-Memory-Cache für Manifeste und Cluster-Zustände \\
+    \hline
+    \texttt{prometheus-server} & \texttt{monitoring} & \texttt{50m} / \texttt{128Mi} & \texttt{300m} / \texttt{384Mi} & NodePort \texttt{30090}; hochauflösende \gl{tsdb} (Abtastung: \texttt{5s}) \\
+    \hline
+    \texttt{prometheus-node-\newline exporter} & \texttt{monitoring} & \texttt{10m} / \texttt{24Mi} & \texttt{50m} / \texttt{48Mi} & Host-Kernel- und \texttt{/proc/vmstat}-Metriken \\
+    \hline
+    \texttt{kube-state-metrics} & \texttt{monitoring} & \texttt{10m} / \texttt{32Mi} & \texttt{50m} / \texttt{64Mi} & Kubernetes-Objekt- und Pod-Zustände \\
+    \hline
+    \texttt{baseline-workload}\newline (\texttt{nginx:1.30.7-alpine}) & \texttt{workloads} & \texttt{20m} / \texttt{32Mi} & \texttt{100m} / \texttt{64Mi} & Port \texttt{80} (\texttt{ClusterIP}); durch ArgoCD überwachte Applikation \\
+    \hline\hline
+    \end{tabularx}
+\caption{Ressourcenallokation (\texttt{requests} und \texttt{limits}) sowie Netzwerkschnittstellen der bereitgestellten Komponenten, eigene Darstellung.}
+\label{tab:ressourcenallokation-komponenten}
+\end{table}
+
+Die Summe aller Speicher-Requests beträgt exakt \texttt{792Mi}, während die kumulierten Limits bei \texttt{1840Mi} liegen. Zusammen mit dem Grundbedarf des Ubuntu-Betriebssystems sowie der K3s-Basisschicht samt \texttt{containerd}, CoreDNS und \texttt{local-path-provisioner} (etwa 700--900~MiB) verbleibt auf der 4~GiB großen \texttt{t3.medium}-Instanz ausreichend physischer Arbeitsspeicher, um Host-seitiges Paging (\textit{Swap-Reinheit}) vollständig auszuschließen, während die ArgoCD-Control-Plane durch ihre Container-Limits (\texttt{512Mi} bzw.\ \texttt{384Mi}) weiterhin strikt ressourcenbeschränkt bleibt.\autocite{burns_borg_2016,gregg_systems_2020}
+
+\section{Deterministische Fehlerinjektion auf Linux-Kernel-Ebene}
+\label{sec:deterministische-fehlerinjektion}
+
+Zusätzliche Kubernetes-Chaos-Operatoren wie \textit{Chaos Mesh} oder \textit{LitmusChaos} würden auf einer \texttt{t3.medium}-Instanz durch eigene Controller und Webhooks einen erheblichen Speicher- und \gl{cpu}-Overhead verursachen.\autocite{basiri_chaos_2016,koziolek_k3s_2023} Das Framework nutzt daher das schlanke Skript \texttt{inject-iptables.sh}, das Paketverluste direkt im \texttt{netfilter}-Subsystem des Linux-Kernels ohne Container-Zusatzlast erzeugt.\autocite{gregg_systems_2020,netfilter_iptables_2026}
+
+\subsection{Paketfilterung in der Kernel-Chain FORWARD}
+\label{subsec:paketfilterung-forward}
+
+Zur Simulation einer degradierten \gl{wan}-Strecke fügt \texttt{inject-iptables.sh} für konfigurierbare Wahrscheinlichkeiten $0 < p < 1$ (z.\,B.\ $p = 0{,}80$) mittels \texttt{-m statistic --mode random --probability} eine probabilistische Bernoulli-\texttt{DROP}-Regel ein; bei $p = 1{,}00$ (vollständige Netzwerkpartition) greift ein deterministisches \texttt{-j DROP} ohne Statistikmodul.\autocite{eddy_rfc9293_2022,netfilter_iptables_2026} Da \texttt{DROP} im Gegensatz zu \texttt{REJECT} weder \texttt{RST}- noch \texttt{ICMP}-Fehlermeldungen zurücksendet, erzwingt der Linux-\gl{tcp}-Stack reale Retransmission-Timeouts (\gl{rto}).\autocite{eddy_rfc9293_2022}
+
+Die Regel wird gezielt an Position~1 (\texttt{-I FORWARD 1}) ausschließlich in der \texttt{FORWARD}-Chain platziert:\autocite{k3s_architecture_2026,netfilter_iptables_2026}
+
+\begin{quote}
+\texttt{\small iptables -I FORWARD 1 -p tcp --dport 443 -m statistic --mode random --probability 0.80 -m comment --comment \textquotedbl{}gitops-chaos\textquotedbl{} -j DROP}
+\end{quote}
+
+Da der \texttt{argocd-repo-server} in einem isolierten Pod-Netzwerknamensraum läuft, passiert sein ausgehender Verkehr die Flannel-\gl{cni}-Bridge (\texttt{cni0}) und wird vom Kernel über \texttt{FORWARD} geroutet; Position~1 stellt sicher, dass das Verwerfen noch vor den regulären \gl{cni}-\texttt{ACCEPT}-Regeln greift.\autocite{burns_kubernetes_2022,k3s_architecture_2026} Auf eine zusätzliche Regelung der Host-\texttt{OUTPUT}-Chain wird bewusst verzichtet, um Systemdienste auf dem Host nicht mitzufiltern und den Paketverwurfzähler nicht zu verrauschen. Durch die Beschränkung auf Zielport \texttt{--dport 443} wird zudem ein streng asymmetrischer Uplink-Paketverlust auf dem ausgehenden \gl{https}-Pfad zu GitHub modelliert.
+
+\subsection{Begrenzung des Blast Radius und fehlersichere Selbstbereinigung}
+\label{subsec:blast-radius-selbstbereinigung}
+
+Durch den Selektor \texttt{-p tcp --dport 443} in \texttt{FORWARD} bleibt der \textit{Blast Radius} strikt auf externe \gl{https}-Verbindungen der Pods begrenzt:\autocite{basiri_chaos_2016,netfilter_iptables_2026} Die \gl{ssh}-Steuerung (Port \texttt{22}), das Cluster-interne Zusammenspiel zwischen Controller, \texttt{kube-apiserver} (Port \texttt{6443}), Repo-Server und Redis sowie das lokale Prometheus-Scraping (Ports \texttt{8082}, \texttt{8084} und \texttt{30090}) bleiben vollständig ungestört.\autocite{argocd_architecture_2026,brazil_prometheus_2018}
+
+Alle injizierten Regeln tragen den Kommentar \texttt{\textquotedbl{}gitops-chaos\textquotedbl{}}. Über \texttt{trap cleanup EXIT INT TERM} protokolliert die Bereinigungsfunktion unmittelbar vor dem Löschen den exakten Gesamtzähler verworfener Pakete (\texttt{FINAL\_DROPS} über \texttt{iptables -L FORWARD -v -n -x}) und entfernt anschließend sämtliche markierten Regeln rückstandsfrei über \texttt{iptables -S FORWARD}.\autocite{netfilter_iptables_2026}
+
+\section{Instrumentierung, On-Node-Versuchssteuerung und Validierung der Swap-Reinheit}
+\label{sec:instrumentierung-versuchssteuerung-validierung}
+
+Um transiente Störungsfenster frei von externen \gl{wan}-Latenzen und Abtastverlusten zu erfassen, kombiniert das Framework ein 5-Sekunden-Prometheus-Scraping mit einer vollständig lokal auf der \gl{ec2}-Instanz ausgeführten Versuchssteuerung.\autocite{basiri_chaos_2016,brazil_prometheus_2018}
+
+\subsection{Hochauflösende Metrikerfassung, Network-Namespace-Isolation und PromQL-Abfragen}
+\label{subsec:metrikerfassung-promql}
+
+In \texttt{values-prometheus.yaml} sind \texttt{scrape\_interval} und \texttt{evaluation\_interval} auf \texttt{5s} (\texttt{scrape\_timeout: 4s}) konfiguriert, um auch kurzfristige Latenz- und Ressourcenspitzen ohne \textit{Undersampling} abzubilden.\autocite{beyer_sre_2016,prometheus_docs_2026} Neben den aus kumulativen Histogrammen abgeleiteten 50.- und 95.-Perzentilen (Gleichung~\ref{eq:promql-histogram-quantile}) erfasst das Framework das exakte arithmetische Mittel (\texttt{rate(...\_sum) / rate(...\_count)}), um Bucket-Interpolationsartefakte einzuordnen:\autocite{brazil_prometheus_2018,prometheus_docs_2026}
+
+\begin{equation}
+L_{\varphi}(t) = \text{histogram\_quantile}\!\left(\varphi,\; \sum_{\text{le}} \text{rate}\!\left(\text{\texttt{argocd\_app\_reconcile\_bucket}}[1\text{m}]\right)\right)
+\label{eq:promql-histogram-quantile}
+\end{equation}
+
+Dabei löst die Instrumentierung vier wesentliche Mess- und Architekturprobleme:
+
+\begin{enumerate}
+\item \textbf{Linux-Network-Namespace-Isolation (\texttt{netns}):} Der Host-\texttt{node-exporter} erfasst lediglich \texttt{/proc/net/snmp} des Host-Namespaces, während die \gl{tcp}-Retransmissions des \texttt{argocd-repo-server} ausschließlich in dessen isoliertem Pod-Namespace gezählt werden.\autocite{burns_kubernetes_2022,eddy_rfc9293_2022} Deshalb liest \texttt{node-runner.py} alle 5~Sekunden gezielt die \texttt{RetransSegs}-Zähler aus \texttt{/proc/<pid>/net/snmp} des \texttt{argocd-repo-server}-Prozesses (\texttt{pod\_tcp\_retrans\_rate}) sowie die exakten \texttt{FORWARD}-Paketverwürfe (\texttt{iptables\_drop\_rate}).\autocite{gregg_systems_2020}
+\item \textbf{Keine Vorwärtsinterpolation auf Latenzen:} In inaktiven 1-Minuten-Fenstern gibt \texttt{histogram\_quantile()} \texttt{NaN} zurück. Das Framework verzichtet bewusst auf ein Vorwärtsauffüllen (\texttt{ffill}) oder Nullsetzen solcher Lücken in der \gl{csv}, um künstliche Latenzplateaus nach Störungsende zu vermeiden.
+\item \textbf{Komponentenübergreifende Last-, CFS-Throttling- und Observer-Kontrolle:} Application Controller (\texttt{512Mi}) und Repo-Server (\texttt{384Mi}) werden getrennt im Namespace \texttt{argocd} samt \gl{cpu}-Throttling (\texttt{container\_cpu\_cfs\_throttled\_seconds\_total}) überwacht; zusätzlich quantifiziert der Namespace \texttt{monitoring} den Eigenbedarf der Messinfrastruktur, während \texttt{cpu\_steal\_rate} Hypervisor-Einflüsse ausschließt.\autocite{argocd_architecture_2026,gregg_systems_2020}
+\item \textbf{Double-Scrape-Audit:} Zu Batch-Beginn prüft \texttt{node-runner.py} mittels \texttt{count(argocd\_git\_request\_total)}, dass Prometheus jedes Ziel genau einmal scrapt, und protokolliert sämtliche real laufenden Softwareversionen im Batch-\gl{json}.
+\end{enumerate}
+
+Tabelle~\ref{tab:prometheus-metriken-promql} fasst alle 19 \gl{promql}-Abfragen und die drei direkten Kernel-/Status-Zeitreihen zusammen.\autocite{argocd_architecture_2026,prometheus_docs_2026}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.1cm}|>{\raggedright\arraybackslash}p{5.8cm}|>{\raggedright\arraybackslash}p{1.0cm}|>{\raggedright\arraybackslash}X}
+    \textbf{Metrik (\gl{csv})} & \textbf{Implementierte Abfrage / Quelle} & \textbf{Einh.} & \textbf{Analytische Bedeutung} \\
+    \specialrule{1.5pt}{0pt}{0pt}
+    \texttt{reconcile\_duration\_\newline median\_sec} / \texttt{p95\_sec} & \texttt{\footnotesize histogram\_quantile(\{0.50,0.95\},\newline sum(rate(argocd\_app\_reconcile\_\newline bucket[1m])) by (le))} & $\text{s}$ & Median ($p_{50}$) und Tail-Latenz ($p_{95}$) der Reconciliation \\
+    \hline
+    \texttt{reconcile\_duration\_\newline avg\_sec} & \texttt{\footnotesize sum(rate(argocd\_app\_reconcile\_\newline sum[1m])) / sum(rate(...\_count[1m]))} & $\text{s}$ & Exaktes Mittel ohne Bucket-Interpolation \\
+    \hline
+    \texttt{git\_request\_\newline duration\_p95\_sec} & \texttt{\footnotesize histogram\_quantile(0.95, sum(rate(\newline argocd\_git\_request\_duration\_\newline seconds\_bucket[1m])) by (le))} & $\text{s}$ & $p_{95}$-Dauer ausgehender Git-Abrufe (\texttt{repo-server}) \\
+    \hline
+    \texttt{git\_request\_rate} & \texttt{\footnotesize sum(rate(argocd\_git\_request\_\newline total[1m])) or vector(0)} & $\text{s}^{-1}$ & Rate ausgehender Git-Anfragen des \texttt{repo-server} \\
+    \hline
+    \texttt{sync\_succeeded\_rate} / \texttt{sync\_failed\_rate} & \texttt{\footnotesize sum(rate(argocd\_app\_sync\_total\newline \{phase=\textquotedbl{}Succeeded\textquotedbl{}|\~{}\textquotedbl{}Failed|Error\textquotedbl{}\}[1m]))} & $\text{s}^{-1}$ & Erfolgs- bzw.\ Fehlerrate realer Auto-Syncs \\
+    \hline
+    \texttt{controller\_memory\_\newline bytes} / \texttt{cpu\_cores} & \texttt{\footnotesize working\_set\_bytes} / \texttt{\footnotesize cpu\_usage} (\texttt{\footnotesize ns=\textquotedbl{}argocd\textquotedbl{}, controller}) & $\text{B}$ /\newline \gl{vcpu} & Speicher (vs.\ \texttt{512Mi}) und \gl{cpu}-Last des Controllers \\
+    \hline
+    \texttt{repo\_server\_memory\_\newline bytes} / \texttt{cpu\_cores} & \texttt{\footnotesize working\_set\_bytes} / \texttt{\footnotesize cpu\_usage} (\texttt{\footnotesize ns=\textquotedbl{}argocd\textquotedbl{}, repo-server}) & $\text{B}$ /\newline \gl{vcpu} & Speicher (vs.\ \texttt{384Mi}) und \gl{cpu}-Last des Repo-Servers \\
+    \hline
+    \texttt{controller\_cpu\_throttled\_\newline rate} / \texttt{repo\_server\_\newline cpu\_throttled\_rate} & \texttt{\footnotesize rate(container\_cpu\_cfs\_throttled\_\newline seconds\_total[1m])} & $\text{s}/\text{s}$ & Kubernetes-CFS-\gl{cpu}-Throttling je Control-Plane-Pod \\
+    \hline
+    \texttt{monitoring\_memory\_\newline bytes} / \texttt{cpu\_cores} & \texttt{\footnotesize container\_memory} / \texttt{\footnotesize cpu\_usage} (\texttt{\footnotesize ns=\textquotedbl{}monitoring\textquotedbl{}}) & $\text{B}$ /\newline \gl{vcpu} & Quantifizierung des Single-Node-Observer-Overheads \\
+    \hline
+    \texttt{pod\_tcp\_retrans\_\newline rate} / \texttt{iptables\_\newline drop\_rate} & Direkt auf EC2: \texttt{\footnotesize /proc/<pid>/net/snmp} (\texttt{repo-server}) \& \texttt{\footnotesize iptables -L FORWARD} & $\text{s}^{-1}$ & Pod-\gl{tcp}-Retransmissions und exakte \texttt{FORWARD}-Drops \\
+    \hline
+    \texttt{host\_tcp\_retrans\_\newline rate} / \texttt{cpu\_steal\_rate} & \texttt{\footnotesize rate(node\_netstat\_Tcp\_RetransSegs\newline [1m])} / \texttt{\footnotesize mode=\textquotedbl{}steal\textquotedbl{}} & $\text{s}^{-1}$ /\newline \gl{vcpu} & Host-\texttt{netns}-Kontrolle und Hypervisor-Throttling-Check \\
+    \hline
+    \texttt{swap\_used\_bytes} / \texttt{swap\_page\_rate} & \texttt{\footnotesize SwapTotal - SwapFree} /\newline \texttt{\footnotesize rate(node\_vmstat\_pswp\{in,out\}[1m])} & $\text{B}$ /\newline $\text{s}^{-1}$ & Prometheus-Kontrolle von Swap-Nutzung und Paging \\
+    \hline
+    \texttt{app\_degraded\_state} & Direkt auf EC2 via \texttt{\footnotesize kubectl -o json} ($0$ oder $1$) & $[0,1]$ & Binärer Verlaufsindikator für Fehler-/\texttt{Drift}-Zustände \\
+    \hline\hline
+    \end{tabularx}
+\caption{Im Messframework implementierte Prometheus- und On-Node-Kernel-Metriken, eigene Darstellung in Anlehnung an Argo Project (2026) und Prometheus Authors (2026).}
+\label{tab:prometheus-metriken-promql}
+\end{table}
+
+\subsection{Autarke On-Node-Versuchssteuerung, Kontrollgruppe und Nachweis der Swap-Reinheit}
+\label{subsec:phasengesteuerter-versuchsablauf-swap}
+
+Um Einflüsse der Client-Netzwerkverbindung und wiederholte \gl{ssh}-Handshake-Lasten auf der \gl{ec2}-Instanz auszuschließen, überträgt \texttt{run-experiment.py} die Werkzeuge zu Beginn per \gl{scp} und startet \texttt{node-runner.py} entkoppelt (\texttt{nohup}) direkt auf dem Zielknoten.\autocite{basiri_chaos_2016,gregg_systems_2020} Alle Zeitstempel und Kernel-Auslesungen erfolgen damit auf einer gemeinsamen Systemuhr. Neben verschiedenen Paketverluststufen (Parameter-Sweep bis $p = 1{,}00$) unterstützt \texttt{node-runner.py} echte Kontrollläufe (\texttt{--probability 0.0}) mit identischem Trigger- und Drift-Protokoll. Sequenzielle Wiederholungsläufe werden durch einen 60-sekündigen Cooldown getrennt, damit gleitende 1-Minuten-\gl{promql}-Fenster vor dem nächsten Lauf abklingen.\autocite{brazil_prometheus_2018} Jeder Lauf gliedert sich in fünf Phasen:
+
+\begin{enumerate}
+\item \textbf{Phase 0 -- Vorbereitung:} \texttt{run-experiment.py} startet \texttt{node-runner.py} lokal auf der \gl{ec2}-Instanz. Dieser bereinigt etwaige Altregeln in \texttt{iptables}, prüft die lokale Prometheus-Erreichbarkeit, verifiziert über \texttt{kubectl} den stabilen Ausgangszustand (\texttt{Synced}, \texttt{Healthy}, kein Drift-Label) und protokolliert die Systemumgebung.
+\item \textbf{Phase 1 -- Steady-State-Baseline ($30\,\text{s}$):} Unmittelbar vor Beginn der Baseline liest \texttt{node-runner.py} die Zähler $\text{pswpin}(t_{\text{start}})$ und $\text{pswpout}(t_{\text{start}})$ direkt aus \texttt{/proc/vmstat} ein und zeichnet 30~Sekunden lang im 5-Sekunden-Takt den ungestörten Betriebszustand auf.\autocite{basiri_chaos_2016,kernel_vmstat_2026}
+\item \textbf{Phase 2 -- Fehlerinjektion, Cache-Invalidierung und Drift ($120\,\text{s}$):} Zum Zeitpunkt $t_{\text{fault\_start}}$ aktiviert \texttt{node-runner.py} in Chaos-Läufen \texttt{inject-iptables.sh}. Bei $t = +3\,\text{s}$ (sowie erneut alle 30~Sekunden während des Störungsfensters) erzwingt er per \texttt{argocd.argoproj.io/refresh=hard} eine Cache-Invalidierung und injiziert erst 1~Sekunde danach ($t = +4\,\text{s}$) den Label-Drift \texttt{experiment=drifted} auf dem Deployment, damit ein gecachtes Manifest keinen sofortigen Self-Heal über Port \texttt{6443} auslöst.\autocite{argocd_architecture_2026} Im 5-Sekunden-Takt protokolliert das Skript den Eintritt eines Netzfehlers ($t_{\text{fault\_detected}}$ bei \texttt{ComparisonError} bzw.\ \texttt{Unknown}), ignoriert dabei etwaige transiente \texttt{kubectl}-Fehler und erfasst über einen Waiter-Thread das Störungsende $t_{\text{fault\_end}}$.
+\item \textbf{Phase 3 -- Konvergenz, Nachlaufzeit ($90\,\text{s}$) und Swap-Reinheit:} Nach $t_{\text{fault\_end}}$ überwacht das Skript (Timeout: 240~Sekunden) den Abschluss der Konvergenz ($t_{\text{recovered}}$), wobei neben \texttt{Synced} und \texttt{Healthy} explizit die Bereinigung des Drift-Labels geprüft wird. Eine anschließende 90-sekündige Stabilisierungsphase stellt sicher, dass alle 1-Minuten-\gl{promql}-Fenster in der \texttt{post\_recovery}-Phase vollständig abklingen. Danach werden $T_{\text{dwell}}$ (Gleichung~\ref{eq:dwell-time}), $\text{\gl{mttr}}_{\text{post-fault}}$ (Gleichung~\ref{eq:mttr}) und die formale Bedingung der Swap-Reinheit geprüft:\autocite{beyer_sre_2016,gregg_systems_2020,kernel_vmstat_2026}
+\begin{equation}
+\begin{aligned}
+\Delta\text{pswpin} &= \text{pswpin}(t_{\text{end}}) - \text{pswpin}(t_{\text{start}}) \stackrel{!}{=} 0 \\
+\Delta\text{pswpout} &= \text{pswpout}(t_{\text{end}}) - \text{pswpout}(t_{\text{start}}) \stackrel{!}{=} 0
+\end{aligned}
+\label{eq:swap-purity-condition}
+\end{equation}
+Abschließend exportiert \texttt{node-runner.py} alle Zeitreihen inklusive \texttt{experiment\_phase} (mit echten \texttt{NaN}-Lücken bei Inaktivität) in eine \gl{csv}-Datei sowie phasengetrennte und aggregierte Statistiken in eine \gl{json}-Zusammenfassung.
+\item \textbf{Phase 4 -- Artefakt-Transfer und Visualisierung:} Nach dem \texttt{DONE}-Signal lädt \texttt{run-experiment.py} alle Ergebnisdateien per \gl{scp} herunter. Das Skript \texttt{analysis/plot-results.py} generiert daraus Zeitreihen- und Ressourcenverläufe (mit schattierten Fehler-/Erholungsphasen und Observer-Overhead) sowie bei Mehrfachläufen bzw.\ Parameter-Sweeps Cross-Run-Boxplots über wiederholte Messläufe.\autocite{brazil_prometheus_2018}
+\end{enumerate}

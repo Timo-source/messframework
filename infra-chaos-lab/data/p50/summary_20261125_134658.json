@@ -1,0 +1,4852 @@
+{
+  "batch_id": "20261125_134658",
+  "generated_at_utc": "2026-11-25 13:11:25.136803",
+  "environment": {
+    "kernel": "7.0.0-1018-aws",
+    "k3s_version": "k3s version v1.37.2+k3s1 (f6973cb8)",
+    "argocd_images": [
+      "ecr-public.aws.com/docker/library/redis:8.6.4-alpine",
+      "quay.io/argoproj/argocd:v3.6.2"
+    ],
+    "monitoring_images": [
+      "quay.io/prometheus-operator/prometheus-config-reloader:v0.95.2",
+      "quay.io/prometheus/node-exporter:v1.13.1",
+      "quay.io/prometheus/prometheus:v3.16.0",
+      "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0"
+    ],
+    "total_ram_mib": 3812.2,
+    "vm_swappiness": 1,
+    "prom_git_series_count": 2,
+    "repo_server_netns_detected": true
+  },
+  "config": {
+    "runs": 5,
+    "duration_sec": 120,
+    "probability": 0.5,
+    "drift_injected": true,
+    "baseline_wait_sec": 30,
+    "post_wait_sec": 90,
+    "cooldown_sec": 60,
+    "poll_interval_sec": 5.0,
+    "app_name": "baseline-workload-app"
+  },
+  "aggregate": {
+    "runs_total": 5,
+    "runs_recovered": 5,
+    "runs_swap_pure": 5,
+    "dwell_time_sec": {
+      "count": 5,
+      "mean": 7.7932,
+      "std": 4.471139,
+      "median": 4.8,
+      "min": 4.78,
+      "max": 14.787
+    },
+    "mttr_post_fault_sec": {
+      "count": 5,
+      "mean": 0.0,
+      "std": 0.0,
+      "median": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    },
+    "peak_reconcile_p95_sec": {
+      "count": 5,
+      "mean": 8.88,
+      "std": 5.2846,
+      "median": 7.8,
+      "min": 3.9,
+      "max": 14.4
+    },
+    "peak_reconcile_avg_sec": {
+      "count": 5,
+      "mean": 4.468561,
+      "std": 1.7566,
+      "median": 4.773094,
+      "min": 2.430938,
+      "max": 6.539426
+    },
+    "peak_git_duration_p95_sec": {
+      "count": 5,
+      "mean": 11.3,
+      "std": 7.851115,
+      "median": 9.7,
+      "min": 3.9,
+      "max": 19.5
+    },
+    "peak_pod_tcp_retrans_rate": {
+      "count": 5,
+      "mean": 2.03176,
+      "std": 0.660911,
+      "median": 2.0,
+      "min": 1.2,
+      "max": 2.8
+    },
+    "peak_iptables_drop_rate": {
+      "count": 5,
+      "mean": 3.30352,
+      "std": 1.129558,
+      "median": 3.0,
+      "min": 2.4,
+      "max": 5.1176
+    },
+    "peak_controller_memory_mib": {
+      "count": 5,
+      "mean": 137.807813,
+      "std": 18.14556,
+      "median": 140.195312,
+      "min": 107.4375,
+      "max": 153.277344
+    },
+    "peak_repo_server_memory_mib": {
+      "count": 5,
+      "mean": 34.4125,
+      "std": 0.918304,
+      "median": 34.734375,
+      "min": 32.84375,
+      "max": 35.109375
+    },
+    "peak_monitoring_memory_mib": {
+      "count": 5,
+      "mean": 371.945312,
+      "std": 4.926123,
+      "median": 373.785156,
+      "min": 365.847656,
+      "max": 378.148438
+    },
+    "peak_controller_cpu_mcores": {
+      "count": 5,
+      "mean": 13.447,
+      "std": 1.888991,
+      "median": 12.591,
+      "min": 11.524,
+      "max": 16.087
+    },
+    "peak_repo_server_cpu_mcores": {
+      "count": 5,
+      "mean": 2.7824,
+      "std": 0.229715,
+      "median": 2.781,
+      "min": 2.457,
+      "max": 3.099
+    },
+    "max_cpu_steal_rate": {
+      "count": 5,
+      "mean": 0.001164,
+      "std": 0.000491,
+      "median": 0.001091,
+      "min": 0.000727,
+      "max": 0.002
+    }
+  },
+  "runs": [
+    {
+      "run_index": 1,
+      "is_control": false,
+      "csv_file": "metrics_20261125_134658_run1.csv",
+      "sample_count": 49,
+      "kernel_drops_total": 39,
+      "timestamps_unix": {
+        "baseline_start": 1795610820.9778507,
+        "fault_start": 1795610851.0813382,
+        "first_non_normal": 1795610855.301894,
+        "fault_detected": null,
+        "fault_end": 1795610971.121728,
+        "recovered": 1795610860.081439,
+        "post_wait_end": 1795611065.7168043
+      },
+      "timestamps_utc": {
+        "baseline_start": "2026-11-25 12:47:00.977851",
+        "fault_start": "2026-11-25 12:47:31.081338",
+        "first_non_normal": "2026-11-25 12:47:35.301894",
+        "fault_detected": null,
+        "fault_end": "2026-11-25 12:49:31.121728",
+        "recovered": "2026-11-25 12:47:40.081439",
+        "post_wait_end": "2026-11-25 12:51:05.716804"
+      },
+      "k8s_server_timestamps": {
+        "first_fault_condition_ts": null,
+        "recovered_reconciled_at": "2026-11-25T12:47:35Z"
+      },
+      "actual_fault_duration_sec": 120.04,
+      "dwell_time_sec": 4.78,
+      "mttr_post_fault_sec": 0.0,
+      "first_fault_state": null,
+      "transitions": [
+        {
+          "elapsed_sec": 4.22,
+          "timestamp_utc": "2026-11-25 12:47:35.301933",
+          "sync": "Synced",
+          "health": "Healthy",
+          "conditions": "",
+          "reconciled_at": "2026-11-25T12:47:34Z"
+        }
+      ],
+      "swap_purity": {
+        "delta_pswpin": 0,
+        "delta_pswpout": 0,
+        "passed": true
+      },
+      "prometheus_stats": {
+        "reconcile_duration_p95_sec": {
+          "count": 29,
+          "mean": 2.361638,
+          "std": 1.253281,
+          "median": 1.9,
+          "min": 0.4875,
+          "max": 3.9
+        },
+        "reconcile_duration_median_sec": {
+          "count": 29,
+          "mean": 0.928161,
+          "std": 1.106657,
+          "median": 0.5,
+          "min": 0.166667,
+          "max": 3.0
+        },
+        "reconcile_duration_avg_sec": {
+          "count": 29,
+          "mean": 1.245245,
+          "std": 1.021189,
+          "median": 0.983291,
+          "min": 0.17112,
+          "max": 2.929929
+        },
+        "git_request_duration_p95_sec": {
+          "count": 30,
+          "mean": 2.245,
+          "std": 1.375061,
+          "median": 1.9,
+          "min": 0.4875,
+          "max": 3.9
+        },
+        "git_request_rate": {
+          "count": 49,
+          "mean": 0.016327,
+          "std": 0.015412,
+          "median": 0.018182,
+          "min": 0.0,
+          "max": 0.036364
+        },
+        "sync_succeeded_rate": {
+          "count": 49,
+          "mean": 0.004082,
+          "std": 0.007665,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.018186
+        },
+        "sync_failed_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "controller_memory_bytes": {
+          "count": 49,
+          "mean": 104172732.081633,
+          "std": 8926349.6101,
+          "median": 107229184.0,
+          "min": 88739840.0,
+          "max": 112656384.0
+        },
+        "controller_cpu_cores": {
+          "count": 49,
+          "mean": 0.005782,
+          "std": 0.003975,
+          "median": 0.003604,
+          "min": 0.002214,
+          "max": 0.012591
+        },
+        "controller_cpu_throttled_rate": {
+          "count": 49,
+          "mean": 0.001828,
+          "std": 0.002779,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.008487
+        },
+        "repo_server_memory_bytes": {
+          "count": 49,
+          "mean": 34354823.836735,
+          "std": 1628548.712594,
+          "median": 34254848.0,
+          "min": 32186368.0,
+          "max": 36421632.0
+        },
+        "repo_server_cpu_cores": {
+          "count": 49,
+          "mean": 0.00151,
+          "std": 0.000641,
+          "median": 0.001527,
+          "min": 0.000676,
+          "max": 0.002837
+        },
+        "repo_server_cpu_throttled_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "monitoring_memory_bytes": {
+          "count": 49,
+          "mean": 382677744.326531,
+          "std": 535602.36451,
+          "median": 382689280.0,
+          "min": 381272064.0,
+          "max": 383619072.0
+        },
+        "monitoring_cpu_cores": {
+          "count": 49,
+          "mean": 0.0405,
+          "std": 0.002198,
+          "median": 0.040485,
+          "min": 0.03188,
+          "max": 0.044348
+        },
+        "host_tcp_retrans_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "cpu_steal_rate": {
+          "count": 49,
+          "mean": 0.00043,
+          "std": 0.000137,
+          "median": 0.000364,
+          "min": 0.000364,
+          "max": 0.000727
+        },
+        "swap_used_bytes": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "swap_page_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "pod_tcp_retrans_rate": {
+          "count": 49,
+          "mean": 0.092988,
+          "std": 0.316016,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.2
+        },
+        "iptables_drop_rate": {
+          "count": 49,
+          "mean": 0.164927,
+          "std": 0.56346,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.4
+        },
+        "app_degraded_state": {
+          "count": 49,
+          "mean": 0.020408,
+          "std": 0.142857,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.0
+        }
+      },
+      "phase_stats": {
+        "baseline": {
+          "reconcile_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_median_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_succeeded_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 7,
+            "mean": 89090340.571429,
+            "std": 355557.472218,
+            "median": 89255936.0,
+            "min": 88739840.0,
+            "max": 89645056.0
+          },
+          "controller_cpu_cores": {
+            "count": 7,
+            "mean": 0.002873,
+            "std": 0.000124,
+            "median": 0.002873,
+            "min": 0.002748,
+            "max": 0.003082
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 7,
+            "mean": 32326802.285714,
+            "std": 152191.146459,
+            "median": 32251904.0,
+            "min": 32186368.0,
+            "max": 32546816.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 7,
+            "mean": 0.000895,
+            "std": 7.3e-05,
+            "median": 0.000887,
+            "min": 0.000823,
+            "max": 0.00098
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 7,
+            "mean": 382910464.0,
+            "std": 740103.86621,
+            "median": 383369216.0,
+            "min": 382046208.0,
+            "max": 383619072.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 7,
+            "mean": 0.041034,
+            "std": 0.002091,
+            "median": 0.041491,
+            "min": 0.038954,
+            "max": 0.044348
+          },
+          "host_tcp_retrans_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 7,
+            "mean": 0.000442,
+            "std": 0.000143,
+            "median": 0.000364,
+            "min": 0.000364,
+            "max": 0.000727
+          },
+          "swap_used_bytes": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "fault": {
+          "reconcile_duration_p95_sec": {
+            "count": 23,
+            "mean": 1.960326,
+            "std": 1.088712,
+            "median": 1.75,
+            "min": 0.4875,
+            "max": 3.8
+          },
+          "reconcile_duration_median_sec": {
+            "count": 23,
+            "mean": 0.387681,
+            "std": 0.287424,
+            "median": 0.375,
+            "min": 0.166667,
+            "max": 1.5
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 23,
+            "mean": 0.805762,
+            "std": 0.592677,
+            "median": 0.443961,
+            "min": 0.17112,
+            "max": 1.680592
+          },
+          "git_request_duration_p95_sec": {
+            "count": 24,
+            "mean": 1.83125,
+            "std": 1.221017,
+            "median": 1.9,
+            "min": 0.4875,
+            "max": 3.9
+          },
+          "git_request_rate": {
+            "count": 24,
+            "mean": 0.029545,
+            "std": 0.008992,
+            "median": 0.036364,
+            "min": 0.018182,
+            "max": 0.036364
+          },
+          "sync_succeeded_rate": {
+            "count": 24,
+            "mean": 0.008333,
+            "std": 0.009254,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018186
+          },
+          "sync_failed_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 24,
+            "mean": 107826688.0,
+            "std": 8474284.071103,
+            "median": 111910912.0,
+            "min": 89645056.0,
+            "max": 112656384.0
+          },
+          "controller_cpu_cores": {
+            "count": 24,
+            "mean": 0.005755,
+            "std": 0.003563,
+            "median": 0.003693,
+            "min": 0.0023,
+            "max": 0.012322
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 24,
+            "mean": 0.002306,
+            "std": 0.00336,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.008487
+          },
+          "repo_server_memory_bytes": {
+            "count": 24,
+            "mean": 33666901.333333,
+            "std": 1215883.723966,
+            "median": 33327104.0,
+            "min": 32325632.0,
+            "max": 35897344.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 24,
+            "mean": 0.002032,
+            "std": 0.000441,
+            "median": 0.002072,
+            "min": 0.000823,
+            "max": 0.002837
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 24,
+            "mean": 382582272.0,
+            "std": 414972.048368,
+            "median": 382574592.0,
+            "min": 381759488.0,
+            "max": 383311872.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 24,
+            "mean": 0.039998,
+            "std": 0.00251,
+            "median": 0.04045,
+            "min": 0.03188,
+            "max": 0.043196
+          },
+          "host_tcp_retrans_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 24,
+            "mean": 0.000424,
+            "std": 0.000138,
+            "median": 0.000364,
+            "min": 0.000364,
+            "max": 0.000727
+          },
+          "swap_used_bytes": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 24,
+            "mean": 0.18985,
+            "std": 0.435003,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 1.2
+          },
+          "iptables_drop_rate": {
+            "count": 24,
+            "mean": 0.336725,
+            "std": 0.776027,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 2.4
+          },
+          "app_degraded_state": {
+            "count": 24,
+            "mean": 0.041667,
+            "std": 0.204124,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 1.0
+          }
+        },
+        "recovery": {
+          "reconcile_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_median_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_succeeded_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "host_tcp_retrans_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_used_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "post_recovery": {
+          "reconcile_duration_p95_sec": {
+            "count": 6,
+            "mean": 3.9,
+            "std": 0.0,
+            "median": 3.9,
+            "min": 3.9,
+            "max": 3.9
+          },
+          "reconcile_duration_median_sec": {
+            "count": 6,
+            "mean": 3.0,
+            "std": 0.0,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 6,
+            "mean": 2.929929,
+            "std": 0.0,
+            "median": 2.929929,
+            "min": 2.929929,
+            "max": 2.929929
+          },
+          "git_request_duration_p95_sec": {
+            "count": 6,
+            "mean": 3.9,
+            "std": 0.0,
+            "median": 3.9,
+            "min": 3.9,
+            "max": 3.9
+          },
+          "git_request_rate": {
+            "count": 18,
+            "mean": 0.005051,
+            "std": 0.00838,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018182
+          },
+          "sync_succeeded_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 18,
+            "mean": 105166165.333333,
+            "std": 3769927.9393,
+            "median": 106377216.0,
+            "min": 95137792.0,
+            "max": 107446272.0
+          },
+          "controller_cpu_cores": {
+            "count": 18,
+            "mean": 0.00695,
+            "std": 0.004744,
+            "median": 0.003678,
+            "min": 0.002214,
+            "max": 0.012591
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 18,
+            "mean": 0.001903,
+            "std": 0.002198,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.004496
+          },
+          "repo_server_memory_bytes": {
+            "count": 18,
+            "mean": 36060728.888889,
+            "std": 192939.011889,
+            "median": 35942400.0,
+            "min": 35897344.0,
+            "max": 36421632.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 18,
+            "mean": 0.001053,
+            "std": 0.000368,
+            "median": 0.00087,
+            "min": 0.000676,
+            "max": 0.001849
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 18,
+            "mean": 382714538.666667,
+            "std": 589134.655996,
+            "median": 382720000.0,
+            "min": 381272064.0,
+            "max": 383512576.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 18,
+            "mean": 0.040962,
+            "std": 0.001697,
+            "median": 0.040339,
+            "min": 0.03889,
+            "max": 0.043436
+          },
+          "host_tcp_retrans_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 18,
+            "mean": 0.000434,
+            "std": 0.000141,
+            "median": 0.000364,
+            "min": 0.000364,
+            "max": 0.000727
+          },
+          "swap_used_bytes": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        }
+      }
+    },
+    {
+      "run_index": 2,
+      "is_control": false,
+      "csv_file": "metrics_20261125_134658_run2.csv",
+      "sample_count": 49,
+      "kernel_drops_total": 75,
+      "timestamps_unix": {
+        "baseline_start": 1795611126.0299299,
+        "fault_start": 1795611156.1765442,
+        "first_non_normal": 1795611160.3895123,
+        "fault_detected": null,
+        "fault_end": 1795611276.2038436,
+        "recovered": 1795611175.176678,
+        "post_wait_end": 1795611370.5847456
+      },
+      "timestamps_utc": {
+        "baseline_start": "2026-11-25 12:52:06.029930",
+        "fault_start": "2026-11-25 12:52:36.176544",
+        "first_non_normal": "2026-11-25 12:52:40.389512",
+        "fault_detected": null,
+        "fault_end": "2026-11-25 12:54:36.203844",
+        "recovered": "2026-11-25 12:52:55.176678",
+        "post_wait_end": "2026-11-25 12:56:10.584746"
+      },
+      "k8s_server_timestamps": {
+        "first_fault_condition_ts": null,
+        "recovered_reconciled_at": "2026-11-25T12:52:54Z"
+      },
+      "actual_fault_duration_sec": 120.027,
+      "dwell_time_sec": 14.787,
+      "mttr_post_fault_sec": 0.0,
+      "first_fault_state": null,
+      "transitions": [
+        {
+          "elapsed_sec": 4.21,
+          "timestamp_utc": "2026-11-25 12:52:40.389551",
+          "sync": "Synced",
+          "health": "Healthy",
+          "conditions": "",
+          "reconciled_at": "2026-11-25T12:51:26Z"
+        }
+      ],
+      "swap_purity": {
+        "delta_pswpin": 0,
+        "delta_pswpout": 0,
+        "passed": true
+      },
+      "prometheus_stats": {
+        "reconcile_duration_p95_sec": {
+          "count": 31,
+          "mean": 8.382258,
+          "std": 4.959926,
+          "median": 7.6,
+          "min": 0.2375,
+          "max": 14.4
+        },
+        "reconcile_duration_median_sec": {
+          "count": 31,
+          "mean": 2.052419,
+          "std": 1.922605,
+          "median": 3.0,
+          "min": 0.125,
+          "max": 6.0
+        },
+        "reconcile_duration_avg_sec": {
+          "count": 31,
+          "mean": 3.452769,
+          "std": 1.553327,
+          "median": 3.502723,
+          "min": 0.161951,
+          "max": 6.539426
+        },
+        "git_request_duration_p95_sec": {
+          "count": 31,
+          "mean": 10.811935,
+          "std": 7.019351,
+          "median": 9.4,
+          "min": 0.2425,
+          "max": 19.5
+        },
+        "git_request_rate": {
+          "count": 49,
+          "mean": 0.017811,
+          "std": 0.014607,
+          "median": 0.018182,
+          "min": 0.0,
+          "max": 0.036364
+        },
+        "sync_succeeded_rate": {
+          "count": 49,
+          "mean": 0.004082,
+          "std": 0.007665,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.018182
+        },
+        "sync_failed_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "controller_memory_bytes": {
+          "count": 49,
+          "mean": 134439413.55102,
+          "std": 18191994.777326,
+          "median": 124682240.0,
+          "min": 111636480.0,
+          "max": 157327360.0
+        },
+        "controller_cpu_cores": {
+          "count": 49,
+          "mean": 0.004693,
+          "std": 0.002845,
+          "median": 0.003444,
+          "min": 0.002493,
+          "max": 0.011524
+        },
+        "controller_cpu_throttled_rate": {
+          "count": 49,
+          "mean": 0.001523,
+          "std": 0.003278,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.009472
+        },
+        "repo_server_memory_bytes": {
+          "count": 49,
+          "mean": 35166751.346939,
+          "std": 589940.54782,
+          "median": 35262464.0,
+          "min": 33923072.0,
+          "max": 36065280.0
+        },
+        "repo_server_cpu_cores": {
+          "count": 49,
+          "mean": 0.001426,
+          "std": 0.000703,
+          "median": 0.001187,
+          "min": 0.000638,
+          "max": 0.002738
+        },
+        "repo_server_cpu_throttled_rate": {
+          "count": 49,
+          "mean": 5.8e-05,
+          "std": 0.000134,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.000416
+        },
+        "monitoring_memory_bytes": {
+          "count": 49,
+          "mean": 383191583.346939,
+          "std": 2505033.128353,
+          "median": 382459904.0,
+          "min": 381227008.0,
+          "max": 391942144.0
+        },
+        "monitoring_cpu_cores": {
+          "count": 49,
+          "mean": 0.040062,
+          "std": 0.002993,
+          "median": 0.040194,
+          "min": 0.026399,
+          "max": 0.043546
+        },
+        "host_tcp_retrans_rate": {
+          "count": 49,
+          "mean": 0.012246,
+          "std": 0.019776,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.05456
+        },
+        "cpu_steal_rate": {
+          "count": 49,
+          "mean": 0.000438,
+          "std": 0.000133,
+          "median": 0.000364,
+          "min": 0.000364,
+          "max": 0.000909
+        },
+        "swap_used_bytes": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "swap_page_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "pod_tcp_retrans_rate": {
+          "count": 49,
+          "mean": 0.217653,
+          "std": 0.587891,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.8
+        },
+        "iptables_drop_rate": {
+          "count": 49,
+          "mean": 0.308049,
+          "std": 0.826374,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 3.6
+        },
+        "app_degraded_state": {
+          "count": 49,
+          "mean": 0.061224,
+          "std": 0.242226,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.0
+        }
+      },
+      "phase_stats": {
+        "baseline": {
+          "reconcile_duration_p95_sec": {
+            "count": 4,
+            "mean": 0.2375,
+            "std": 0.0,
+            "median": 0.2375,
+            "min": 0.2375,
+            "max": 0.2375
+          },
+          "reconcile_duration_median_sec": {
+            "count": 4,
+            "mean": 0.125,
+            "std": 0.0,
+            "median": 0.125,
+            "min": 0.125,
+            "max": 0.125
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 4,
+            "mean": 0.161951,
+            "std": 0.0,
+            "median": 0.161951,
+            "min": 0.161951,
+            "max": 0.161951
+          },
+          "git_request_duration_p95_sec": {
+            "count": 4,
+            "mean": 0.2425,
+            "std": 0.0,
+            "median": 0.2425,
+            "min": 0.2425,
+            "max": 0.2425
+          },
+          "git_request_rate": {
+            "count": 7,
+            "mean": 0.01039,
+            "std": 0.009719,
+            "median": 0.018182,
+            "min": 0.0,
+            "max": 0.018182
+          },
+          "sync_succeeded_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 7,
+            "mean": 111654034.285714,
+            "std": 11991.860096,
+            "median": 111661056.0,
+            "min": 111636480.0,
+            "max": 111661056.0
+          },
+          "controller_cpu_cores": {
+            "count": 7,
+            "mean": 0.003423,
+            "std": 0.000573,
+            "median": 0.003279,
+            "min": 0.002493,
+            "max": 0.004077
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 7,
+            "mean": 36065280.0,
+            "std": 0.0,
+            "median": 36065280.0,
+            "min": 36065280.0,
+            "max": 36065280.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 7,
+            "mean": 0.000865,
+            "std": 0.00011,
+            "median": 0.000859,
+            "min": 0.000638,
+            "max": 0.000948
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 7,
+            "mean": 387806354.285714,
+            "std": 4467000.346975,
+            "median": 391024640.0,
+            "min": 383037440.0,
+            "max": 391942144.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 7,
+            "mean": 0.040533,
+            "std": 0.002088,
+            "median": 0.039413,
+            "min": 0.038282,
+            "max": 0.043546
+          },
+          "host_tcp_retrans_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 7,
+            "mean": 0.000416,
+            "std": 0.000137,
+            "median": 0.000364,
+            "min": 0.000364,
+            "max": 0.000727
+          },
+          "swap_used_bytes": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "fault": {
+          "reconcile_duration_p95_sec": {
+            "count": 21,
+            "mean": 11.038095,
+            "std": 3.342825,
+            "median": 14.0,
+            "min": 7.6,
+            "max": 14.4
+          },
+          "reconcile_duration_median_sec": {
+            "count": 21,
+            "mean": 2.10119,
+            "std": 2.094038,
+            "median": 0.208333,
+            "min": 0.166667,
+            "max": 6.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 21,
+            "mean": 4.195392,
+            "std": 0.820874,
+            "median": 3.558731,
+            "min": 3.502723,
+            "max": 6.539426
+          },
+          "git_request_duration_p95_sec": {
+            "count": 21,
+            "mean": 14.538095,
+            "std": 4.994244,
+            "median": 19.0,
+            "min": 9.4,
+            "max": 19.5
+          },
+          "git_request_rate": {
+            "count": 24,
+            "mean": 0.029545,
+            "std": 0.008991,
+            "median": 0.036364,
+            "min": 0.018182,
+            "max": 0.036364
+          },
+          "sync_succeeded_rate": {
+            "count": 24,
+            "mean": 0.008333,
+            "std": 0.009254,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018182
+          },
+          "sync_failed_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 24,
+            "mean": 141779456.0,
+            "std": 17666808.922896,
+            "median": 150611968.0,
+            "min": 111927296.0,
+            "max": 156069888.0
+          },
+          "controller_cpu_cores": {
+            "count": 24,
+            "mean": 0.006087,
+            "std": 0.003572,
+            "median": 0.003609,
+            "min": 0.003049,
+            "max": 0.011524
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 24,
+            "mean": 0.003109,
+            "std": 0.004156,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.009472
+          },
+          "repo_server_memory_bytes": {
+            "count": 24,
+            "mean": 34855936.0,
+            "std": 538768.041576,
+            "median": 34725888.0,
+            "min": 34136064.0,
+            "max": 36065280.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 24,
+            "mean": 0.001905,
+            "std": 0.000629,
+            "median": 0.001989,
+            "min": 0.000766,
+            "max": 0.002738
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 24,
+            "mean": 0.000103,
+            "std": 0.000167,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.000416
+          },
+          "monitoring_memory_bytes": {
+            "count": 24,
+            "mean": 382334634.666667,
+            "std": 452421.07754,
+            "median": 382316544.0,
+            "min": 381227008.0,
+            "max": 383045632.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 24,
+            "mean": 0.040419,
+            "std": 0.00321,
+            "median": 0.040388,
+            "min": 0.026399,
+            "max": 0.043075
+          },
+          "host_tcp_retrans_rate": {
+            "count": 24,
+            "mean": 0.025002,
+            "std": 0.021986,
+            "median": 0.018182,
+            "min": 0.0,
+            "max": 0.05456
+          },
+          "cpu_steal_rate": {
+            "count": 24,
+            "mean": 0.000424,
+            "std": 0.000116,
+            "median": 0.000364,
+            "min": 0.000364,
+            "max": 0.000727
+          },
+          "swap_used_bytes": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 24,
+            "mean": 0.444375,
+            "std": 0.784956,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 2.8
+          },
+          "iptables_drop_rate": {
+            "count": 24,
+            "mean": 0.628933,
+            "std": 1.10208,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 3.6
+          },
+          "app_degraded_state": {
+            "count": 24,
+            "mean": 0.125,
+            "std": 0.337832,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 1.0
+          }
+        },
+        "recovery": {
+          "reconcile_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_median_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_succeeded_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "host_tcp_retrans_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_used_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "post_recovery": {
+          "reconcile_duration_p95_sec": {
+            "count": 6,
+            "mean": 4.516667,
+            "std": 1.510519,
+            "median": 3.9,
+            "min": 3.9,
+            "max": 7.6
+          },
+          "reconcile_duration_median_sec": {
+            "count": 6,
+            "mean": 3.166667,
+            "std": 0.408248,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 4.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 6,
+            "mean": 3.047467,
+            "std": 0.777592,
+            "median": 2.730016,
+            "min": 2.730016,
+            "max": 4.634721
+          },
+          "git_request_duration_p95_sec": {
+            "count": 6,
+            "mean": 4.816667,
+            "std": 2.245366,
+            "median": 3.9,
+            "min": 3.9,
+            "max": 9.4
+          },
+          "git_request_rate": {
+            "count": 18,
+            "mean": 0.005051,
+            "std": 0.00838,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018182
+          },
+          "sync_succeeded_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 18,
+            "mean": 133513671.111111,
+            "std": 14880295.752369,
+            "median": 124682240.0,
+            "min": 124203008.0,
+            "max": 157327360.0
+          },
+          "controller_cpu_cores": {
+            "count": 18,
+            "mean": 0.003328,
+            "std": 0.000293,
+            "median": 0.003396,
+            "min": 0.002639,
+            "max": 0.003849
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 18,
+            "mean": 35231744.0,
+            "std": 341548.586559,
+            "median": 35262464.0,
+            "min": 33923072.0,
+            "max": 35524608.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 18,
+            "mean": 0.001005,
+            "std": 0.000463,
+            "median": 0.00077,
+            "min": 0.000648,
+            "max": 0.002409
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 18,
+            "mean": 2.1e-05,
+            "std": 8.7e-05,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.000371
+          },
+          "monitoring_memory_bytes": {
+            "count": 18,
+            "mean": 382539548.444444,
+            "std": 377821.237503,
+            "median": 382437376.0,
+            "min": 381984768.0,
+            "max": 383344640.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 18,
+            "mean": 0.039403,
+            "std": 0.003014,
+            "median": 0.039681,
+            "min": 0.032488,
+            "max": 0.042647
+          },
+          "host_tcp_retrans_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 18,
+            "mean": 0.000465,
+            "std": 0.000156,
+            "median": 0.000364,
+            "min": 0.000364,
+            "max": 0.000909
+          },
+          "swap_used_bytes": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        }
+      }
+    },
+    {
+      "run_index": 3,
+      "is_control": false,
+      "csv_file": "metrics_20261125_134658_run3.csv",
+      "sample_count": 49,
+      "kernel_drops_total": 45,
+      "timestamps_unix": {
+        "baseline_start": 1795611430.9119499,
+        "fault_start": 1795611461.0083725,
+        "first_non_normal": 1795611465.2068624,
+        "fault_detected": null,
+        "fault_end": 1795611581.029214,
+        "recovered": 1795611475.0085003,
+        "post_wait_end": 1795611675.4025497
+      },
+      "timestamps_utc": {
+        "baseline_start": "2026-11-25 12:57:10.911950",
+        "fault_start": "2026-11-25 12:57:41.008373",
+        "first_non_normal": "2026-11-25 12:57:45.206862",
+        "fault_detected": null,
+        "fault_end": "2026-11-25 12:59:41.029214",
+        "recovered": "2026-11-25 12:57:55.008500",
+        "post_wait_end": "2026-11-25 13:01:15.402550"
+      },
+      "k8s_server_timestamps": {
+        "first_fault_condition_ts": null,
+        "recovered_reconciled_at": "2026-11-25T12:57:54Z"
+      },
+      "actual_fault_duration_sec": 120.021,
+      "dwell_time_sec": 9.802,
+      "mttr_post_fault_sec": 0.0,
+      "first_fault_state": null,
+      "transitions": [
+        {
+          "elapsed_sec": 4.2,
+          "timestamp_utc": "2026-11-25 12:57:45.206894",
+          "sync": "Synced",
+          "health": "Healthy",
+          "conditions": "",
+          "reconciled_at": "2026-11-25T12:56:46Z"
+        }
+      ],
+      "swap_purity": {
+        "delta_pswpin": 0,
+        "delta_pswpout": 0,
+        "passed": true
+      },
+      "prometheus_stats": {
+        "reconcile_duration_p95_sec": {
+          "count": 35,
+          "mean": 7.456071,
+          "std": 5.333923,
+          "median": 7.8,
+          "min": 0.2375,
+          "max": 14.4
+        },
+        "reconcile_duration_median_sec": {
+          "count": 35,
+          "mean": 1.829762,
+          "std": 2.248283,
+          "median": 0.25,
+          "min": 0.125,
+          "max": 6.0
+        },
+        "reconcile_duration_avg_sec": {
+          "count": 35,
+          "mean": 2.751864,
+          "std": 1.817315,
+          "median": 2.5393,
+          "min": 0.196445,
+          "max": 5.669417
+        },
+        "git_request_duration_p95_sec": {
+          "count": 36,
+          "mean": 9.488819,
+          "std": 7.403049,
+          "median": 9.55,
+          "min": 0.2425,
+          "max": 19.5
+        },
+        "git_request_rate": {
+          "count": 49,
+          "mean": 0.018924,
+          "std": 0.013866,
+          "median": 0.018182,
+          "min": 0.0,
+          "max": 0.036364
+        },
+        "sync_succeeded_rate": {
+          "count": 49,
+          "mean": 0.004082,
+          "std": 0.007665,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.018182
+        },
+        "sync_failed_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "controller_memory_bytes": {
+          "count": 49,
+          "mean": 121813786.122449,
+          "std": 25515682.242633,
+          "median": 105623552.0,
+          "min": 92622848.0,
+          "max": 160722944.0
+        },
+        "controller_cpu_cores": {
+          "count": 49,
+          "mean": 0.006495,
+          "std": 0.004156,
+          "median": 0.003764,
+          "min": 0.002206,
+          "max": 0.014713
+        },
+        "controller_cpu_throttled_rate": {
+          "count": 49,
+          "mean": 0.002701,
+          "std": 0.004067,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.014178
+        },
+        "repo_server_memory_bytes": {
+          "count": 49,
+          "mean": 35126794.44898,
+          "std": 1232867.82909,
+          "median": 34361344.0,
+          "min": 33923072.0,
+          "max": 36679680.0
+        },
+        "repo_server_cpu_cores": {
+          "count": 49,
+          "mean": 0.001328,
+          "std": 0.000571,
+          "median": 0.001174,
+          "min": 0.000438,
+          "max": 0.002457
+        },
+        "repo_server_cpu_throttled_rate": {
+          "count": 49,
+          "mean": 0.000239,
+          "std": 0.000455,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.001361
+        },
+        "monitoring_memory_bytes": {
+          "count": 49,
+          "mean": 383899522.612245,
+          "std": 2845994.279736,
+          "median": 382517248.0,
+          "min": 381366272.0,
+          "max": 391970816.0
+        },
+        "monitoring_cpu_cores": {
+          "count": 49,
+          "mean": 0.040616,
+          "std": 0.002612,
+          "median": 0.040217,
+          "min": 0.033164,
+          "max": 0.044596
+        },
+        "host_tcp_retrans_rate": {
+          "count": 49,
+          "mean": 0.011874,
+          "std": 0.015098,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.036365
+        },
+        "cpu_steal_rate": {
+          "count": 49,
+          "mean": 0.00066,
+          "std": 0.000165,
+          "median": 0.000727,
+          "min": 0.000364,
+          "max": 0.001091
+        },
+        "swap_used_bytes": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "swap_page_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "pod_tcp_retrans_rate": {
+          "count": 49,
+          "mean": 0.141127,
+          "std": 0.397013,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.0
+        },
+        "iptables_drop_rate": {
+          "count": 49,
+          "mean": 0.186696,
+          "std": 0.538776,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.4
+        },
+        "app_degraded_state": {
+          "count": 49,
+          "mean": 0.040816,
+          "std": 0.199915,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.0
+        }
+      },
+      "phase_stats": {
+        "baseline": {
+          "reconcile_duration_p95_sec": {
+            "count": 7,
+            "mean": 0.2375,
+            "std": 0.0,
+            "median": 0.2375,
+            "min": 0.2375,
+            "max": 0.2375
+          },
+          "reconcile_duration_median_sec": {
+            "count": 7,
+            "mean": 0.125,
+            "std": 0.0,
+            "median": 0.125,
+            "min": 0.125,
+            "max": 0.125
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 7,
+            "mean": 0.196445,
+            "std": 0.0,
+            "median": 0.196445,
+            "min": 0.196445,
+            "max": 0.196445
+          },
+          "git_request_duration_p95_sec": {
+            "count": 7,
+            "mean": 0.2425,
+            "std": 0.0,
+            "median": 0.2425,
+            "min": 0.2425,
+            "max": 0.2425
+          },
+          "git_request_rate": {
+            "count": 7,
+            "mean": 0.018182,
+            "std": 0.0,
+            "median": 0.018182,
+            "min": 0.018182,
+            "max": 0.018182
+          },
+          "sync_succeeded_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 7,
+            "mean": 93356617.142857,
+            "std": 561378.323494,
+            "median": 93020160.0,
+            "min": 92622848.0,
+            "max": 93937664.0
+          },
+          "controller_cpu_cores": {
+            "count": 7,
+            "mean": 0.003715,
+            "std": 0.000229,
+            "median": 0.003764,
+            "min": 0.003479,
+            "max": 0.003935
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 7,
+            "mean": 33923072.0,
+            "std": 0.0,
+            "median": 33923072.0,
+            "min": 33923072.0,
+            "max": 33923072.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 7,
+            "mean": 0.001081,
+            "std": 5.5e-05,
+            "median": 0.00105,
+            "min": 0.001033,
+            "max": 0.001174
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 7,
+            "mean": 382214144.0,
+            "std": 580024.068503,
+            "median": 382517248.0,
+            "min": 381366272.0,
+            "max": 382607360.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 7,
+            "mean": 0.039352,
+            "std": 0.00054,
+            "median": 0.039341,
+            "min": 0.038706,
+            "max": 0.040064
+          },
+          "host_tcp_retrans_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 7,
+            "mean": 0.000935,
+            "std": 0.000125,
+            "median": 0.000909,
+            "min": 0.000727,
+            "max": 0.001091
+          },
+          "swap_used_bytes": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "fault": {
+          "reconcile_duration_p95_sec": {
+            "count": 21,
+            "mean": 9.747619,
+            "std": 4.957153,
+            "median": 13.6,
+            "min": 1.95,
+            "max": 14.4
+          },
+          "reconcile_duration_median_sec": {
+            "count": 21,
+            "mean": 1.007937,
+            "std": 0.883158,
+            "median": 0.25,
+            "min": 0.166667,
+            "max": 2.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 21,
+            "mean": 2.631152,
+            "std": 0.578253,
+            "median": 2.5393,
+            "min": 1.361615,
+            "max": 3.515516
+          },
+          "git_request_duration_p95_sec": {
+            "count": 22,
+            "mean": 12.363636,
+            "std": 7.360079,
+            "median": 14.2,
+            "min": 1.95,
+            "max": 19.5
+          },
+          "git_request_rate": {
+            "count": 24,
+            "mean": 0.029545,
+            "std": 0.008992,
+            "median": 0.036364,
+            "min": 0.018182,
+            "max": 0.036364
+          },
+          "sync_succeeded_rate": {
+            "count": 24,
+            "mean": 0.008333,
+            "std": 0.009254,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018182
+          },
+          "sync_failed_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 24,
+            "mean": 142232234.666667,
+            "std": 21735576.556932,
+            "median": 149504000.0,
+            "min": 93831168.0,
+            "max": 160722944.0
+          },
+          "controller_cpu_cores": {
+            "count": 24,
+            "mean": 0.006962,
+            "std": 0.004023,
+            "median": 0.00418,
+            "min": 0.002206,
+            "max": 0.01364
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 24,
+            "mean": 0.004331,
+            "std": 0.0051,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.014178
+          },
+          "repo_server_memory_bytes": {
+            "count": 24,
+            "mean": 34413397.333333,
+            "std": 776053.469034,
+            "median": 34017280.0,
+            "min": 33923072.0,
+            "max": 36102144.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 24,
+            "mean": 0.001635,
+            "std": 0.00057,
+            "median": 0.001599,
+            "min": 0.000438,
+            "max": 0.002457
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 24,
+            "mean": 0.000327,
+            "std": 0.000522,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.001361
+          },
+          "monitoring_memory_bytes": {
+            "count": 24,
+            "mean": 382286677.333333,
+            "std": 374179.387182,
+            "median": 382298112.0,
+            "min": 381812736.0,
+            "max": 383115264.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 24,
+            "mean": 0.039798,
+            "std": 0.002977,
+            "median": 0.039474,
+            "min": 0.033164,
+            "max": 0.043122
+          },
+          "host_tcp_retrans_rate": {
+            "count": 24,
+            "mean": 0.016666,
+            "std": 0.018507,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.036365
+          },
+          "cpu_steal_rate": {
+            "count": 24,
+            "mean": 0.000621,
+            "std": 0.000119,
+            "median": 0.000545,
+            "min": 0.000364,
+            "max": 0.000909
+          },
+          "swap_used_bytes": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 24,
+            "mean": 0.288133,
+            "std": 0.533616,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 2.0
+          },
+          "iptables_drop_rate": {
+            "count": 24,
+            "mean": 0.381171,
+            "std": 0.726946,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 2.4
+          },
+          "app_degraded_state": {
+            "count": 24,
+            "mean": 0.083333,
+            "std": 0.28233,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 1.0
+          }
+        },
+        "recovery": {
+          "reconcile_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_median_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_succeeded_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "host_tcp_retrans_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_used_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "post_recovery": {
+          "reconcile_duration_p95_sec": {
+            "count": 7,
+            "mean": 7.8,
+            "std": 0.0,
+            "median": 7.8,
+            "min": 7.8,
+            "max": 7.8
+          },
+          "reconcile_duration_median_sec": {
+            "count": 7,
+            "mean": 6.0,
+            "std": 0.0,
+            "median": 6.0,
+            "min": 6.0,
+            "max": 6.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 7,
+            "mean": 5.669417,
+            "std": 0.0,
+            "median": 5.669417,
+            "min": 5.669417,
+            "max": 5.669417
+          },
+          "git_request_duration_p95_sec": {
+            "count": 7,
+            "mean": 9.7,
+            "std": 0.0,
+            "median": 9.7,
+            "min": 9.7,
+            "max": 9.7
+          },
+          "git_request_rate": {
+            "count": 18,
+            "mean": 0.005051,
+            "std": 0.00838,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018182
+          },
+          "sync_succeeded_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 18,
+            "mean": 105655864.888889,
+            "std": 707175.373587,
+            "median": 105623552.0,
+            "min": 104554496.0,
+            "max": 107278336.0
+          },
+          "controller_cpu_cores": {
+            "count": 18,
+            "mean": 0.006953,
+            "std": 0.004811,
+            "median": 0.003166,
+            "min": 0.002581,
+            "max": 0.014713
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 18,
+            "mean": 0.001579,
+            "std": 0.00185,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.004678
+          },
+          "repo_server_memory_bytes": {
+            "count": 18,
+            "mean": 36546104.888889,
+            "std": 169641.192087,
+            "median": 36679680.0,
+            "min": 36102144.0,
+            "max": 36679680.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 18,
+            "mean": 0.001014,
+            "std": 0.000468,
+            "median": 0.000808,
+            "min": 0.000667,
+            "max": 0.002187
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 18,
+            "mean": 0.000213,
+            "std": 0.000423,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.00131
+          },
+          "monitoring_memory_bytes": {
+            "count": 18,
+            "mean": 386705408.0,
+            "std": 3063236.919409,
+            "median": 386007040.0,
+            "min": 381648896.0,
+            "max": 391970816.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 18,
+            "mean": 0.042198,
+            "std": 0.001706,
+            "median": 0.042474,
+            "min": 0.040069,
+            "max": 0.044596
+          },
+          "host_tcp_retrans_rate": {
+            "count": 18,
+            "mean": 0.010101,
+            "std": 0.009297,
+            "median": 0.01818,
+            "min": 0.0,
+            "max": 0.018186
+          },
+          "cpu_steal_rate": {
+            "count": 18,
+            "mean": 0.000606,
+            "std": 0.000125,
+            "median": 0.000545,
+            "min": 0.000364,
+            "max": 0.000727
+          },
+          "swap_used_bytes": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        }
+      }
+    },
+    {
+      "run_index": 4,
+      "is_control": false,
+      "csv_file": "metrics_20261125_134658_run4.csv",
+      "sample_count": 49,
+      "kernel_drops_total": 49,
+      "timestamps_unix": {
+        "baseline_start": 1795611735.7484422,
+        "fault_start": 1795611765.844555,
+        "first_non_normal": 1795611770.0474536,
+        "fault_detected": null,
+        "fault_end": 1795611885.8662753,
+        "recovered": 1795611774.844661,
+        "post_wait_end": 1795611980.2495546
+      },
+      "timestamps_utc": {
+        "baseline_start": "2026-11-25 13:02:15.748442",
+        "fault_start": "2026-11-25 13:02:45.844555",
+        "first_non_normal": "2026-11-25 13:02:50.047454",
+        "fault_detected": null,
+        "fault_end": "2026-11-25 13:04:45.866275",
+        "recovered": "2026-11-25 13:02:54.844661",
+        "post_wait_end": "2026-11-25 13:06:20.249555"
+      },
+      "k8s_server_timestamps": {
+        "first_fault_condition_ts": null,
+        "recovered_reconciled_at": "2026-11-25T13:02:54Z"
+      },
+      "actual_fault_duration_sec": 120.022,
+      "dwell_time_sec": 4.797,
+      "mttr_post_fault_sec": 0.0,
+      "first_fault_state": null,
+      "transitions": [
+        {
+          "elapsed_sec": 4.2,
+          "timestamp_utc": "2026-11-25 13:02:50.047454",
+          "sync": "OutOfSync",
+          "health": "Healthy",
+          "conditions": "",
+          "reconciled_at": "2026-11-25T13:02:48Z"
+        },
+        {
+          "elapsed_sec": 9.0,
+          "timestamp_utc": "2026-11-25 13:02:54.844661",
+          "sync": "Synced",
+          "health": "Healthy",
+          "conditions": "",
+          "reconciled_at": "2026-11-25T13:02:54Z"
+        }
+      ],
+      "swap_purity": {
+        "delta_pswpin": 0,
+        "delta_pswpout": 0,
+        "passed": true
+      },
+      "prometheus_stats": {
+        "reconcile_duration_p95_sec": {
+          "count": 30,
+          "mean": 2.459583,
+          "std": 1.129348,
+          "median": 1.9,
+          "min": 0.2375,
+          "max": 3.9
+        },
+        "reconcile_duration_median_sec": {
+          "count": 30,
+          "mean": 1.147083,
+          "std": 1.170579,
+          "median": 0.25,
+          "min": 0.125,
+          "max": 3.0
+        },
+        "reconcile_duration_avg_sec": {
+          "count": 30,
+          "mean": 1.166836,
+          "std": 0.866803,
+          "median": 0.844039,
+          "min": 0.101281,
+          "max": 2.430938
+        },
+        "git_request_duration_p95_sec": {
+          "count": 30,
+          "mean": 2.501167,
+          "std": 1.12526,
+          "median": 1.9,
+          "min": 0.2425,
+          "max": 3.9
+        },
+        "git_request_rate": {
+          "count": 49,
+          "mean": 0.020452,
+          "std": 0.019583,
+          "median": 0.018182,
+          "min": 0.0,
+          "max": 0.054545
+        },
+        "sync_succeeded_rate": {
+          "count": 49,
+          "mean": 0.004082,
+          "std": 0.007665,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.018182
+        },
+        "sync_failed_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "controller_memory_bytes": {
+          "count": 49,
+          "mean": 111207570.285714,
+          "std": 14587581.279972,
+          "median": 113160192.0,
+          "min": 95674368.0,
+          "max": 144797696.0
+        },
+        "controller_cpu_cores": {
+          "count": 49,
+          "mean": 0.004696,
+          "std": 0.00275,
+          "median": 0.003624,
+          "min": 0.00211,
+          "max": 0.01232
+        },
+        "controller_cpu_throttled_rate": {
+          "count": 49,
+          "mean": 0.000819,
+          "std": 0.001765,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.005829
+        },
+        "repo_server_memory_bytes": {
+          "count": 49,
+          "mean": 33171748.571429,
+          "std": 1130394.584823,
+          "median": 33669120.0,
+          "min": 31424512.0,
+          "max": 34439168.0
+        },
+        "repo_server_cpu_cores": {
+          "count": 49,
+          "mean": 0.00158,
+          "std": 0.000813,
+          "median": 0.001534,
+          "min": 0.000614,
+          "max": 0.003099
+        },
+        "repo_server_cpu_throttled_rate": {
+          "count": 49,
+          "mean": 9e-06,
+          "std": 1.9e-05,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 5.7e-05
+        },
+        "monitoring_memory_bytes": {
+          "count": 49,
+          "mean": 385048910.367347,
+          "std": 410868.509759,
+          "median": 385052672.0,
+          "min": 384057344.0,
+          "max": 386015232.0
+        },
+        "monitoring_cpu_cores": {
+          "count": 49,
+          "mean": 0.040737,
+          "std": 0.002353,
+          "median": 0.040699,
+          "min": 0.033037,
+          "max": 0.04386
+        },
+        "host_tcp_retrans_rate": {
+          "count": 49,
+          "mean": 0.004082,
+          "std": 0.007665,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.018184
+        },
+        "cpu_steal_rate": {
+          "count": 49,
+          "mean": 0.000757,
+          "std": 0.000107,
+          "median": 0.000727,
+          "min": 0.000545,
+          "max": 0.001091
+        },
+        "swap_used_bytes": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "swap_page_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "pod_tcp_retrans_rate": {
+          "count": 49,
+          "mean": 0.088955,
+          "std": 0.388365,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.5588
+        },
+        "iptables_drop_rate": {
+          "count": 49,
+          "mean": 0.214645,
+          "std": 0.846221,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 5.1176
+        },
+        "app_degraded_state": {
+          "count": 49,
+          "mean": 0.020408,
+          "std": 0.142857,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.0
+        }
+      },
+      "phase_stats": {
+        "baseline": {
+          "reconcile_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_median_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_succeeded_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 7,
+            "mean": 99398802.285714,
+            "std": 223319.217562,
+            "median": 99577856.0,
+            "min": 99160064.0,
+            "max": 99577856.0
+          },
+          "controller_cpu_cores": {
+            "count": 7,
+            "mean": 0.002874,
+            "std": 0.000492,
+            "median": 0.002806,
+            "min": 0.00211,
+            "max": 0.003637
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 7,
+            "mean": 31538029.714286,
+            "std": 141588.047836,
+            "median": 31424512.0,
+            "min": 31424512.0,
+            "max": 31690752.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 7,
+            "mean": 0.000794,
+            "std": 2.6e-05,
+            "median": 0.000781,
+            "min": 0.000769,
+            "max": 0.000849
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 7,
+            "mean": 384919844.571429,
+            "std": 172646.232254,
+            "median": 384864256.0,
+            "min": 384765952.0,
+            "max": 385196032.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 7,
+            "mean": 0.042048,
+            "std": 0.002778,
+            "median": 0.043203,
+            "min": 0.036094,
+            "max": 0.043812
+          },
+          "host_tcp_retrans_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 7,
+            "mean": 0.000701,
+            "std": 6.9e-05,
+            "median": 0.000727,
+            "min": 0.000545,
+            "max": 0.000727
+          },
+          "swap_used_bytes": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "fault": {
+          "reconcile_duration_p95_sec": {
+            "count": 24,
+            "mean": 2.099479,
+            "std": 0.965185,
+            "median": 1.85,
+            "min": 0.2375,
+            "max": 3.8
+          },
+          "reconcile_duration_median_sec": {
+            "count": 24,
+            "mean": 0.683854,
+            "std": 0.779845,
+            "median": 0.25,
+            "min": 0.125,
+            "max": 2.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 24,
+            "mean": 0.85081,
+            "std": 0.652901,
+            "median": 0.677473,
+            "min": 0.101281,
+            "max": 1.945754
+          },
+          "git_request_duration_p95_sec": {
+            "count": 24,
+            "mean": 2.151458,
+            "std": 0.979009,
+            "median": 1.9,
+            "min": 0.2425,
+            "max": 3.8
+          },
+          "git_request_rate": {
+            "count": 24,
+            "mean": 0.03803,
+            "std": 0.010614,
+            "median": 0.036364,
+            "min": 0.018182,
+            "max": 0.054545
+          },
+          "sync_succeeded_rate": {
+            "count": 24,
+            "mean": 0.008333,
+            "std": 0.009254,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018182
+          },
+          "sync_failed_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 24,
+            "mean": 119427413.333333,
+            "std": 15347778.463632,
+            "median": 113168384.0,
+            "min": 100249600.0,
+            "max": 144797696.0
+          },
+          "controller_cpu_cores": {
+            "count": 24,
+            "mean": 0.006135,
+            "std": 0.003355,
+            "median": 0.004509,
+            "min": 0.002757,
+            "max": 0.01232
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 24,
+            "mean": 0.001672,
+            "std": 0.002239,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.005829
+          },
+          "repo_server_memory_bytes": {
+            "count": 24,
+            "mean": 32866986.666667,
+            "std": 947646.70842,
+            "median": 32811008.0,
+            "min": 31424512.0,
+            "max": 34172928.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 24,
+            "mean": 0.002137,
+            "std": 0.000669,
+            "median": 0.002246,
+            "min": 0.000769,
+            "max": 0.003099
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 24,
+            "mean": 8e-06,
+            "std": 1.8e-05,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 5e-05
+          },
+          "monitoring_memory_bytes": {
+            "count": 24,
+            "mean": 385207125.333333,
+            "std": 455478.273538,
+            "median": 385243136.0,
+            "min": 384380928.0,
+            "max": 386015232.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 24,
+            "mean": 0.040855,
+            "std": 0.002306,
+            "median": 0.040857,
+            "min": 0.033455,
+            "max": 0.04386
+          },
+          "host_tcp_retrans_rate": {
+            "count": 24,
+            "mean": 0.00303,
+            "std": 0.006921,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018182
+          },
+          "cpu_steal_rate": {
+            "count": 24,
+            "mean": 0.000773,
+            "std": 0.000123,
+            "median": 0.000727,
+            "min": 0.000546,
+            "max": 0.001091
+          },
+          "swap_used_bytes": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 24,
+            "mean": 0.181617,
+            "std": 0.54517,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 2.5588
+          },
+          "iptables_drop_rate": {
+            "count": 24,
+            "mean": 0.438233,
+            "std": 1.179916,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 5.1176
+          },
+          "app_degraded_state": {
+            "count": 24,
+            "mean": 0.041667,
+            "std": 0.204124,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 1.0
+          }
+        },
+        "recovery": {
+          "reconcile_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_median_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_succeeded_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "host_tcp_retrans_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_used_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "post_recovery": {
+          "reconcile_duration_p95_sec": {
+            "count": 6,
+            "mean": 3.9,
+            "std": 0.0,
+            "median": 3.9,
+            "min": 3.9,
+            "max": 3.9
+          },
+          "reconcile_duration_median_sec": {
+            "count": 6,
+            "mean": 3.0,
+            "std": 0.0,
+            "median": 3.0,
+            "min": 3.0,
+            "max": 3.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 6,
+            "mean": 2.430938,
+            "std": 0.0,
+            "median": 2.430938,
+            "min": 2.430938,
+            "max": 2.430938
+          },
+          "git_request_duration_p95_sec": {
+            "count": 6,
+            "mean": 3.9,
+            "std": 0.0,
+            "median": 3.9,
+            "min": 3.9,
+            "max": 3.9
+          },
+          "git_request_rate": {
+            "count": 18,
+            "mean": 0.004967,
+            "std": 0.008248,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018188
+          },
+          "sync_succeeded_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 18,
+            "mean": 104840078.222222,
+            "std": 9294891.800312,
+            "median": 104914944.0,
+            "min": 95674368.0,
+            "max": 114032640.0
+          },
+          "controller_cpu_cores": {
+            "count": 18,
+            "mean": 0.003486,
+            "std": 0.000451,
+            "median": 0.003524,
+            "min": 0.002593,
+            "max": 0.003924
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 18,
+            "mean": 34213432.888889,
+            "std": 82123.209399,
+            "median": 34185216.0,
+            "min": 34185216.0,
+            "max": 34439168.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 18,
+            "mean": 0.001142,
+            "std": 0.000604,
+            "median": 0.000777,
+            "min": 0.000614,
+            "max": 0.002115
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 18,
+            "mean": 1.6e-05,
+            "std": 2.3e-05,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 5.7e-05
+          },
+          "monitoring_memory_bytes": {
+            "count": 18,
+            "mean": 384888149.333333,
+            "std": 340416.928258,
+            "median": 384931840.0,
+            "min": 384057344.0,
+            "max": 385318912.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 18,
+            "mean": 0.040069,
+            "std": 0.002123,
+            "median": 0.040101,
+            "min": 0.033037,
+            "max": 0.043345
+          },
+          "host_tcp_retrans_rate": {
+            "count": 18,
+            "mean": 0.007071,
+            "std": 0.00912,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018184
+          },
+          "cpu_steal_rate": {
+            "count": 18,
+            "mean": 0.000758,
+            "std": 9.4e-05,
+            "median": 0.000727,
+            "min": 0.000545,
+            "max": 0.000909
+          },
+          "swap_used_bytes": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        }
+      }
+    },
+    {
+      "run_index": 5,
+      "is_control": false,
+      "csv_file": "metrics_20261125_134658_run5.csv",
+      "sample_count": 49,
+      "kernel_drops_total": 50,
+      "timestamps_unix": {
+        "baseline_start": 1795612040.6087012,
+        "fault_start": 1795612070.7136693,
+        "first_non_normal": 1795612074.9139843,
+        "fault_detected": null,
+        "fault_end": 1795612190.7342763,
+        "recovered": 1795612079.7137911,
+        "post_wait_end": 1795612285.114055
+      },
+      "timestamps_utc": {
+        "baseline_start": "2026-11-25 13:07:20.608701",
+        "fault_start": "2026-11-25 13:07:50.713669",
+        "first_non_normal": "2026-11-25 13:07:54.913984",
+        "fault_detected": null,
+        "fault_end": "2026-11-25 13:09:50.734276",
+        "recovered": "2026-11-25 13:07:59.713791",
+        "post_wait_end": "2026-11-25 13:11:25.114055"
+      },
+      "k8s_server_timestamps": {
+        "first_fault_condition_ts": null,
+        "recovered_reconciled_at": "2026-11-25T13:07:58Z"
+      },
+      "actual_fault_duration_sec": 120.021,
+      "dwell_time_sec": 4.8,
+      "mttr_post_fault_sec": 0.0,
+      "first_fault_state": null,
+      "transitions": [
+        {
+          "elapsed_sec": 4.2,
+          "timestamp_utc": "2026-11-25 13:07:54.914019",
+          "sync": "Synced",
+          "health": "Healthy",
+          "conditions": "",
+          "reconciled_at": "2026-11-25T13:07:10Z"
+        }
+      ],
+      "swap_purity": {
+        "delta_pswpin": 0,
+        "delta_pswpout": 0,
+        "passed": true
+      },
+      "prometheus_stats": {
+        "reconcile_duration_p95_sec": {
+          "count": 37,
+          "mean": 3.341892,
+          "std": 2.904403,
+          "median": 1.9,
+          "min": 0.2375,
+          "max": 7.8
+        },
+        "reconcile_duration_median_sec": {
+          "count": 37,
+          "mean": 0.823761,
+          "std": 1.102444,
+          "median": 0.208333,
+          "min": 0.125,
+          "max": 6.0
+        },
+        "reconcile_duration_avg_sec": {
+          "count": 37,
+          "mean": 1.319266,
+          "std": 1.083696,
+          "median": 0.987632,
+          "min": 0.220601,
+          "max": 4.773094
+        },
+        "git_request_duration_p95_sec": {
+          "count": 37,
+          "mean": 3.931284,
+          "std": 3.81258,
+          "median": 1.9,
+          "min": 0.2425,
+          "max": 9.7
+        },
+        "git_request_rate": {
+          "count": 49,
+          "mean": 0.020037,
+          "std": 0.014008,
+          "median": 0.018182,
+          "min": 0.0,
+          "max": 0.036364
+        },
+        "sync_succeeded_rate": {
+          "count": 49,
+          "mean": 0.004082,
+          "std": 0.007665,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.018182
+        },
+        "sync_failed_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "controller_memory_bytes": {
+          "count": 49,
+          "mean": 113632653.061224,
+          "std": 20716613.090756,
+          "median": 101789696.0,
+          "min": 92717056.0,
+          "max": 147005440.0
+        },
+        "controller_cpu_cores": {
+          "count": 49,
+          "mean": 0.00632,
+          "std": 0.003849,
+          "median": 0.004189,
+          "min": 0.00257,
+          "max": 0.016087
+        },
+        "controller_cpu_throttled_rate": {
+          "count": 49,
+          "mean": 0.001952,
+          "std": 0.003133,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.009984
+        },
+        "repo_server_memory_bytes": {
+          "count": 49,
+          "mean": 35370381.061224,
+          "std": 976666.110003,
+          "median": 34828288.0,
+          "min": 34377728.0,
+          "max": 36814848.0
+        },
+        "repo_server_cpu_cores": {
+          "count": 49,
+          "mean": 0.001528,
+          "std": 0.000705,
+          "median": 0.001749,
+          "min": 0.000586,
+          "max": 0.002781
+        },
+        "repo_server_cpu_throttled_rate": {
+          "count": 49,
+          "mean": 6.1e-05,
+          "std": 8.7e-05,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.000261
+        },
+        "monitoring_memory_bytes": {
+          "count": 49,
+          "mean": 386272026.122449,
+          "std": 3412364.137166,
+          "median": 385261568.0,
+          "min": 384069632.0,
+          "max": 396517376.0
+        },
+        "monitoring_cpu_cores": {
+          "count": 49,
+          "mean": 0.041253,
+          "std": 0.003128,
+          "median": 0.041057,
+          "min": 0.034317,
+          "max": 0.047458
+        },
+        "host_tcp_retrans_rate": {
+          "count": 49,
+          "mean": 0.012245,
+          "std": 0.019065,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.054553
+        },
+        "cpu_steal_rate": {
+          "count": 49,
+          "mean": 0.001199,
+          "std": 0.000423,
+          "median": 0.001273,
+          "min": 0.000364,
+          "max": 0.002
+        },
+        "swap_used_bytes": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "swap_page_rate": {
+          "count": 49,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "pod_tcp_retrans_rate": {
+          "count": 49,
+          "mean": 0.125616,
+          "std": 0.391559,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.6
+        },
+        "iptables_drop_rate": {
+          "count": 49,
+          "mean": 0.209249,
+          "std": 0.656628,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 3.0
+        },
+        "app_degraded_state": {
+          "count": 49,
+          "mean": 0.020408,
+          "std": 0.142857,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.0
+        }
+      },
+      "phase_stats": {
+        "baseline": {
+          "reconcile_duration_p95_sec": {
+            "count": 7,
+            "mean": 0.2375,
+            "std": 0.0,
+            "median": 0.2375,
+            "min": 0.2375,
+            "max": 0.2375
+          },
+          "reconcile_duration_median_sec": {
+            "count": 7,
+            "mean": 0.125,
+            "std": 0.0,
+            "median": 0.125,
+            "min": 0.125,
+            "max": 0.125
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 7,
+            "mean": 0.220601,
+            "std": 0.0,
+            "median": 0.220601,
+            "min": 0.220601,
+            "max": 0.220601
+          },
+          "git_request_duration_p95_sec": {
+            "count": 7,
+            "mean": 0.2425,
+            "std": 0.0,
+            "median": 0.2425,
+            "min": 0.2425,
+            "max": 0.2425
+          },
+          "git_request_rate": {
+            "count": 7,
+            "mean": 0.018182,
+            "std": 0.0,
+            "median": 0.018182,
+            "min": 0.018182,
+            "max": 0.018182
+          },
+          "sync_succeeded_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 7,
+            "mean": 94739894.857143,
+            "std": 2521646.580803,
+            "median": 92721152.0,
+            "min": 92717056.0,
+            "max": 97435648.0
+          },
+          "controller_cpu_cores": {
+            "count": 7,
+            "mean": 0.003574,
+            "std": 0.000488,
+            "median": 0.003723,
+            "min": 0.002738,
+            "max": 0.004218
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 7,
+            "mean": 34526354.285714,
+            "std": 253827.705374,
+            "median": 34377728.0,
+            "min": 34377728.0,
+            "max": 34897920.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 7,
+            "mean": 0.000905,
+            "std": 0.000119,
+            "median": 0.000942,
+            "min": 0.000667,
+            "max": 0.000991
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 7,
+            "mean": 384722651.428571,
+            "std": 341206.528827,
+            "median": 384933888.0,
+            "min": 384126976.0,
+            "max": 384995328.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 7,
+            "mean": 0.038582,
+            "std": 0.002893,
+            "median": 0.039506,
+            "min": 0.034317,
+            "max": 0.041039
+          },
+          "host_tcp_retrans_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 7,
+            "mean": 0.000597,
+            "std": 0.000137,
+            "median": 0.000546,
+            "min": 0.000364,
+            "max": 0.000727
+          },
+          "swap_used_bytes": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 7,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "fault": {
+          "reconcile_duration_p95_sec": {
+            "count": 24,
+            "mean": 4.839062,
+            "std": 2.543618,
+            "median": 3.6,
+            "min": 0.2375,
+            "max": 7.8
+          },
+          "reconcile_duration_median_sec": {
+            "count": 24,
+            "mean": 1.046007,
+            "std": 1.304138,
+            "median": 0.604167,
+            "min": 0.125,
+            "max": 6.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 24,
+            "mean": 1.752711,
+            "std": 1.105206,
+            "median": 1.069852,
+            "min": 0.220601,
+            "max": 4.773094
+          },
+          "git_request_duration_p95_sec": {
+            "count": 24,
+            "mean": 5.707708,
+            "std": 3.638425,
+            "median": 3.9,
+            "min": 0.2425,
+            "max": 9.7
+          },
+          "git_request_rate": {
+            "count": 24,
+            "mean": 0.031061,
+            "std": 0.008442,
+            "median": 0.036364,
+            "min": 0.018182,
+            "max": 0.036364
+          },
+          "sync_succeeded_rate": {
+            "count": 24,
+            "mean": 0.008333,
+            "std": 0.009254,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018182
+          },
+          "sync_failed_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 24,
+            "mean": 127750656.0,
+            "std": 21753891.604369,
+            "median": 137428992.0,
+            "min": 92721152.0,
+            "max": 147005440.0
+          },
+          "controller_cpu_cores": {
+            "count": 24,
+            "mean": 0.007247,
+            "std": 0.003614,
+            "median": 0.006681,
+            "min": 0.002744,
+            "max": 0.012758
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 24,
+            "mean": 0.002707,
+            "std": 0.003959,
+            "median": 8e-05,
+            "min": 0.0,
+            "max": 0.009984
+          },
+          "repo_server_memory_bytes": {
+            "count": 24,
+            "mean": 34786474.666667,
+            "std": 643308.436919,
+            "median": 34545664.0,
+            "min": 34377728.0,
+            "max": 36397056.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 24,
+            "mean": 0.002023,
+            "std": 0.000525,
+            "median": 0.002182,
+            "min": 0.000822,
+            "max": 0.002781
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 24,
+            "mean": 7.6e-05,
+            "std": 8.9e-05,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.000261
+          },
+          "monitoring_memory_bytes": {
+            "count": 24,
+            "mean": 385110186.666667,
+            "std": 577303.529737,
+            "median": 385273856.0,
+            "min": 384069632.0,
+            "max": 385761280.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 24,
+            "mean": 0.041258,
+            "std": 0.00287,
+            "median": 0.040249,
+            "min": 0.034684,
+            "max": 0.047458
+          },
+          "host_tcp_retrans_rate": {
+            "count": 24,
+            "mean": 0.025,
+            "std": 0.020635,
+            "median": 0.018182,
+            "min": 0.0,
+            "max": 0.054553
+          },
+          "cpu_steal_rate": {
+            "count": 24,
+            "mean": 0.001106,
+            "std": 0.000339,
+            "median": 0.001273,
+            "min": 0.000545,
+            "max": 0.001455
+          },
+          "swap_used_bytes": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 24,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 24,
+            "mean": 0.256467,
+            "std": 0.533807,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 1.6
+          },
+          "iptables_drop_rate": {
+            "count": 24,
+            "mean": 0.427217,
+            "std": 0.895905,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 3.0
+          },
+          "app_degraded_state": {
+            "count": 24,
+            "mean": 0.041667,
+            "std": 0.204124,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 1.0
+          }
+        },
+        "recovery": {
+          "reconcile_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_median_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_duration_p95_sec": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "git_request_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_succeeded_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_memory_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "host_tcp_retrans_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_used_bytes": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 0,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "post_recovery": {
+          "reconcile_duration_p95_sec": {
+            "count": 6,
+            "mean": 0.975,
+            "std": 0.0,
+            "median": 0.975,
+            "min": 0.975,
+            "max": 0.975
+          },
+          "reconcile_duration_median_sec": {
+            "count": 6,
+            "mean": 0.75,
+            "std": 0.0,
+            "median": 0.75,
+            "min": 0.75,
+            "max": 0.75
+          },
+          "reconcile_duration_avg_sec": {
+            "count": 6,
+            "mean": 0.867264,
+            "std": 0.0,
+            "median": 0.867264,
+            "min": 0.867264,
+            "max": 0.867264
+          },
+          "git_request_duration_p95_sec": {
+            "count": 6,
+            "mean": 1.129167,
+            "std": 0.37763,
+            "median": 0.975,
+            "min": 0.975,
+            "max": 1.9
+          },
+          "git_request_rate": {
+            "count": 18,
+            "mean": 0.006061,
+            "std": 0.008819,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.018182
+          },
+          "sync_succeeded_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "sync_failed_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "controller_memory_bytes": {
+            "count": 18,
+            "mean": 102155832.888889,
+            "std": 1211794.879232,
+            "median": 101789696.0,
+            "min": 100917248.0,
+            "max": 104976384.0
+          },
+          "controller_cpu_cores": {
+            "count": 18,
+            "mean": 0.006152,
+            "std": 0.004441,
+            "median": 0.003196,
+            "min": 0.00257,
+            "max": 0.016087
+          },
+          "controller_cpu_throttled_rate": {
+            "count": 18,
+            "mean": 0.001704,
+            "std": 0.002017,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.005115
+          },
+          "repo_server_memory_bytes": {
+            "count": 18,
+            "mean": 36477155.555556,
+            "std": 197420.612609,
+            "median": 36481024.0,
+            "min": 36278272.0,
+            "max": 36814848.0
+          },
+          "repo_server_cpu_cores": {
+            "count": 18,
+            "mean": 0.001109,
+            "std": 0.000577,
+            "median": 0.000758,
+            "min": 0.000586,
+            "max": 0.002291
+          },
+          "repo_server_cpu_throttled_rate": {
+            "count": 18,
+            "mean": 6.4e-05,
+            "std": 9.5e-05,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.000255
+          },
+          "monitoring_memory_bytes": {
+            "count": 18,
+            "mean": 388423680.0,
+            "std": 4958801.683921,
+            "median": 385771520.0,
+            "min": 384598016.0,
+            "max": 396517376.0
+          },
+          "monitoring_cpu_cores": {
+            "count": 18,
+            "mean": 0.042284,
+            "std": 0.003076,
+            "median": 0.043087,
+            "min": 0.035162,
+            "max": 0.045488
+          },
+          "host_tcp_retrans_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "cpu_steal_rate": {
+            "count": 18,
+            "mean": 0.001556,
+            "std": 0.000218,
+            "median": 0.001455,
+            "min": 0.001273,
+            "max": 0.002
+          },
+          "swap_used_bytes": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "swap_page_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "pod_tcp_retrans_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "iptables_drop_rate": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "app_degraded_state": {
+            "count": 18,
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        }
+      }
+    }
+  ]
+}

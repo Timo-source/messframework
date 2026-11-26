@@ -1,0 +1,167 @@
+Batch 20261125_120107 | Runs=5 | p=0.00 | Prom=http://127.0.0.1:30090
+
+--- Lauf 1/5 [KONTROLLE (0%)] ---
+[Lauf 1] Baseline (30s)...
+[Lauf 1] Drift injiziert (experiment=drifted, ok=True)
+  [+004.3s] Sync=OutOfSync Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+009.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+014.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+019.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+024.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+029.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+034.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+039.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+044.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+049.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+054.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+059.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+064.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+069.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+074.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+079.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+084.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+089.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+094.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+099.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+104.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+109.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+114.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+119.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+[Lauf 1] Stoerungsfenster beendet (120.00s).
+  [+124.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+[Lauf 1] Post-Recovery-Stabilisierung (90s)...
+[Lauf 1] Dwell=- | MTTR_post=- | Drops=0 | Swap=PASS
+[COOLDOWN] Warte 60s vor Lauf 2...
+
+--- Lauf 2/5 [KONTROLLE (0%)] ---
+[Lauf 2] Baseline (30s)...
+[Lauf 2] Drift injiziert (experiment=drifted, ok=True)
+  [+004.2s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+009.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+014.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+019.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+024.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+029.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+034.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+039.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+044.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+049.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+054.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+059.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+064.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+069.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+074.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+079.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+084.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+089.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+094.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+099.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+104.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+109.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+114.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+119.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+[Lauf 2] Stoerungsfenster beendet (120.00s).
+  [+124.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+[Lauf 2] Post-Recovery-Stabilisierung (90s)...
+[Lauf 2] Dwell=- | MTTR_post=- | Drops=0 | Swap=PASS
+[COOLDOWN] Warte 60s vor Lauf 3...
+
+--- Lauf 3/5 [KONTROLLE (0%)] ---
+[Lauf 3] Baseline (30s)...
+[Lauf 3] Drift injiziert (experiment=drifted, ok=True)
+  [+004.2s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+009.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+014.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+019.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+024.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+029.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+034.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+039.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+044.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+049.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+054.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+059.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+064.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+069.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+074.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+079.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+084.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+089.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+094.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+099.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+104.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+109.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+114.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+119.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+[Lauf 3] Stoerungsfenster beendet (120.00s).
+  [+124.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+[Lauf 3] Post-Recovery-Stabilisierung (90s)...
+[Lauf 3] Dwell=- | MTTR_post=- | Drops=0 | Swap=PASS
+[COOLDOWN] Warte 60s vor Lauf 4...
+
+--- Lauf 4/5 [KONTROLLE (0%)] ---
+[Lauf 4] Baseline (30s)...
+[Lauf 4] Drift injiziert (experiment=drifted, ok=True)
+  [+004.2s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+009.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+014.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+019.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+024.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+029.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+034.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+039.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+044.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+049.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+054.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+059.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+064.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+069.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+074.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+079.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+084.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+089.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+094.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+099.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+104.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+109.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+114.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+119.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+[Lauf 4] Stoerungsfenster beendet (120.00s).
+  [+124.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+[Lauf 4] Post-Recovery-Stabilisierung (90s)...
+[Lauf 4] Dwell=- | MTTR_post=- | Drops=0 | Swap=PASS
+[COOLDOWN] Warte 60s vor Lauf 5...
+
+--- Lauf 5/5 [KONTROLLE (0%)] ---
+[Lauf 5] Baseline (30s)...
+[Lauf 5] Drift injiziert (experiment=drifted, ok=True)
+  [+004.2s] Sync=OutOfSync Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+009.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+014.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+019.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+024.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+029.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+034.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+039.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+044.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+049.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+054.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+059.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+064.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+069.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+074.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+079.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+084.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+089.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+094.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+099.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+104.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+109.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+114.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+  [+119.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+[Lauf 5] Stoerungsfenster beendet (120.00s).
+  [+124.0s] Sync=Synced    Health=Healthy  Retrans=0.0/s Drops=0.0/s
+[Lauf 5] Post-Recovery-Stabilisierung (90s)...
+[Lauf 5] Dwell=- | MTTR_post=- | Drops=0 | Swap=PASS
+
+[OK] Batch 20261125_120107 abgeschlossen: /home/ubuntu/chaos-runs/20261125_120107/summary_20261125_120107.json

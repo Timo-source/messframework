@@ -34,11 +34,14 @@ def wait_for_cluster(host: str, key: str, timeout_sec: int = 600) -> None:
     check = "[ -f /var/log/bootstrap-complete.log ] && sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl -n argocd get app baseline-workload-app -o jsonpath='{.status.sync.status}|{.status.health.status}'"
     deadline = time.time() + timeout_sec
     while time.time() < deadline:
-        res = ssh_cmd(host, key, check)
-        if res.returncode == 0 and res.stdout.strip() == "Synced|Healthy":
-            mem = ssh_cmd(host, key, "free -m")
-            print("[OK] Cluster bereit (Synced & Healthy).\n" + mem.stdout.strip(), flush=True)
-            return
+        try:
+            res = ssh_cmd(host, key, check)
+            if res.returncode == 0 and res.stdout.strip() == "Synced|Healthy":
+                mem = ssh_cmd(host, key, "free -m")
+                print("[OK] Cluster bereit (Synced & Healthy).\n" + mem.stdout.strip(), flush=True)
+                return
+        except subprocess.TimeoutExpired:
+            pass
         time.sleep(10)
     raise RuntimeError(f"Cluster wurde innerhalb von {timeout_sec}s nicht bereit.")
 

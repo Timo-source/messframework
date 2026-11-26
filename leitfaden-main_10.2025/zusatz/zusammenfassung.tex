@@ -1,0 +1,13 @@
+\chapter*{Zusammenfassung}
+\addcontentsline{toc}{chapter}{Zusammenfassung}
+\label{sec:zusammenfassung}
+
+Die vorliegende Arbeit untersucht die Resilienz, das Konvergenzverhalten sowie die Ressourcenauslastung deklarativer GitOps-Control-Planes unter transienten Netzwerkstörungen in ressourcenbeschränkten Cloud- und Edge-Umgebungen. Im Fokus steht die Frage, wie sich ein massiver partieller Paketverlust auf der Verbindung zum externen Git-Repository auf die Reconcile-Latenz, die Zustandsübergänge, die Erholungszeit (Mean Time to Recovery, MTTR) sowie den Speicher- und Prozessorbedarf des ArgoCD Application Controllers in einem leichtgewichtigen K3s-Cluster auswirkt. Zur empirischen Beantwortung dieser Fragestellung wurde ein vollständig als Code definiertes, ephemeres Chaos-Engineering-Messframework auf Basis von Terraform und Amazon EC2 konzipiert. Mithilfe deterministischer Fehlerinjektion auf Linux-Kernel-Ebene und hochauflösender Prometheus-Zeitreihenerfassung wird nachgewiesen, dass die Control Plane trotz signifikanter Latenzspitzen während der Störungsphase ihre Selbstheilungsfähigkeit wahrt und ohne Auslagerungsprozesse auf den Sekundärspeicher (Swap-Reinheit) innerhalb der definierten Speichergrenzen stabil konvergiert.
+
+\vspace{0.5cm}
+
+\begin{center}
+\textbf{Abstract}
+\end{center}
+
+This thesis investigates the resilience, convergence behavior, and resource utilization of declarative GitOps control planes under transient network faults in resource-constrained cloud and edge environments. Specifically, it examines how severe packet loss on the connection to the external Git repository affects reconciliation latency, state transitions, Mean Time to Recovery (MTTR), and the memory and CPU consumption of the ArgoCD Application Controller within a lightweight K3s cluster. To empirically address this research question, a fully automated, ephemeral chaos-engineering benchmarking framework based on Terraform and Amazon EC2 was developed. Using deterministic Linux kernel-level fault injection and high-resolution Prometheus time-series monitoring, the study demonstrates that despite significant latency spikes during the fault window, the control plane preserves its self-healing capability and converges reliably within defined memory boundaries while maintaining complete swap purity.

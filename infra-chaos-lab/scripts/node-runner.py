@@ -7,6 +7,7 @@ import datetime
 import json
 import math
 import os
+import random
 import re
 import signal
 import statistics
@@ -508,7 +509,7 @@ def execute_single_run(run_idx: int, total_runs: int, args: argparse.Namespace, 
     d_in, d_out = swap_in_end - swap_in_start, swap_out_end - swap_out_start
     swap_pure = (d_in == 0 and d_out == 0)
 
-    degraded_start = fault_detected_ts or first_non_normal_ts
+    degraded_start = min((t for t in (fault_detected_ts, first_non_normal_ts) if t is not None), default=None)
     dwell_sec = round(max(0.0, recovered_ts - degraded_start), 3) if (not is_control and degraded_start is not None and recovered_ts is not None) else None
     mttr_sec = round(max(0.0, recovered_ts - fault_end_ts), 3) if (not is_control and recovered_ts is not None) else None
     recovery_end_ts = (recovered_ts if recovered_ts is not None else obs_end_ts) if not is_control else fault_end_ts
@@ -575,6 +576,7 @@ def main() -> None:
     parser.add_argument("--baseline-wait", type=int, default=30)
     parser.add_argument("--post-wait", type=int, default=90)
     parser.add_argument("--cooldown", type=int, default=60)
+    parser.add_argument("--cooldown-jitter", type=int, default=90)
     parser.add_argument("--poll-interval", type=float, default=5.0)
     parser.add_argument("--post-fault-timeout", type=int, default=360)
     parser.add_argument("--app-name", default="baseline-workload-app")
@@ -601,9 +603,11 @@ def main() -> None:
         runs: List[Dict[str, Any]] = []
         for idx in range(1, args.runs + 1):
             runs.append(execute_single_run(idx, args.runs, args, prom_url, args.batch_id))
-            if idx < args.runs and args.cooldown > 0:
-                print(f"[COOLDOWN] Warte {args.cooldown}s vor Lauf {idx + 1}...", flush=True)
-                time.sleep(args.cooldown)
+            if idx < args.runs and (args.cooldown > 0 or args.cooldown_jitter > 0):
+                jitter = random.uniform(0.0, float(args.cooldown_jitter)) if args.cooldown_jitter > 0 else 0.0
+                wait_sec = args.cooldown + jitter
+                print(f"[COOLDOWN] Warte {wait_sec:.1f}s ({args.cooldown}s + {jitter:.1f}s Jitter) vor Lauf {idx + 1}...", flush=True)
+                time.sleep(wait_sec)
 
         summary = {
             "batch_id": args.batch_id, "generated_at_utc": utc_iso(time.time()), "environment": env_info,
@@ -611,6 +615,7 @@ def main() -> None:
                 "runs": args.runs, "duration_sec": args.duration, "probability": args.probability,
                 "drift_injected": not args.no_drift, "baseline_wait_sec": args.baseline_wait,
                 "post_wait_sec": args.post_wait, "cooldown_sec": args.cooldown,
+                "cooldown_jitter_sec": args.cooldown_jitter,
                 "poll_interval_sec": args.poll_interval, "app_name": args.app_name,
             },
             "aggregate": build_aggregate(runs), "runs": runs,
